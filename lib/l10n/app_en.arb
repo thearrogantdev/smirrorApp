@@ -1,0 +1,492 @@
+{
+  "appTitle": "Smart Control",
+  "home": "Home",
+  "config": "Config",
+  "navViewLayout": "View Layout",
+  "guestView": "guest-view",
+  "navHaDashboard": "HA Dashboard",
+  "addWidget": "Add Widget",
+  "categoryAll": "All",
+  "categoryGeneral": "General",
+  "categoryWeather": "Weather",
+  "categoryCalendar": "Calendar",
+  "categoryTransit": "Transit",
+  "categorySmartHome": "Smart Home",
+  "categoryEntertainment": "Entertainment",
+  "biometricsFaceUnavailableTooltip": "The connected device does not support face recognition",
+  "biometricsFingerprintUnavailableTooltip": "The connected device does not support fingerprint reading",
+  "admin": "Admin",
+  "logs": "Logs",
+  "about": "About",
+  "setup": "Setup",
+  "screenshot": "Screenshot",
+  "themeMode": "Theme Mode",
+
+  "language": "Language",
+  "addPageTooltip": "Add Page",
+  "deletePageTooltip": "Delete Page",
+  "deletePageTitle": "Delete Page",
+  "deletePageContent": "Are you sure you want to delete this page? This action cannot be undone.",
+  "cancel": "Cancel",
+  "save": "Save",
+  "delete": "Delete",
+  "loading": "Loading",
+  "pageLabel": "Page {current} / {total}",
+  "@pageLabel": {
+    "placeholders": {
+      "current": {},
+      "total": {}
+    }
+  },
+  "pageTabLabel": "Page {number}",
+  "@pageTabLabel": {
+    "placeholders": {
+      "number": {}
+    }
+  },
+  "apiKeyLabel": "API Key",
+  "cityLabel": "City",
+  "unitsLabel": "Units",
+  "unitsMetricCelsius": "metric (°C)",
+  "unitsImperialFahrenheit": "imperial (°F)",
+  "unitsStandardKelvin": "standard (K)",
+  "unknown": "unknown",
+  "apiKeyMissingShort": "No API key configured (check settings).",
+  "weatherPanelSummary": "Weather: {city}\nUnits: {units}",
+  "@weatherPanelSummary": {
+    "placeholders": {
+      "city": {},
+      "units": {}
+    }
+  },
+  "apiKeyRequired": "API key required.",
+  "cityRequired": "City required.",
+  "apiErrorInvalidKey": "Invalid API key.",
+  "apiErrorRateLimited": "Rate limited. Try again later.",
+  "apiErrorNetwork": "Network error. Check your connection.",
+  "apiErrorGenericKeyValidation": "Could not validate API key.",
+  "cityNotFound": "City not found.",
+  "openWeatherSettingsTitle": "OpenWeather Settings",
+  "widgetNameOpenWeatherCurrent": "Current Weather",
+  "widgetNameOpenWeatherForecast": "Weather Forecast",
+  "widgetNameTextLabel": "Text Label",
+  "widgetNameImage": "Image",
+  "widgetNameRainRadar": "Rain Radar",
+  "rainRadarSettingsTitle": "Rain Radar Settings",
+  "googleCalendarSettingsTitle": "Google Calendar Settings",
+  "googleAuthorizeButton": "Authorize Google",
+  "googleAuthRequired": "Please authorize Google to continue.",
+  "googleAuthFailed": "Authorization failed. Please try again.",
+  "googleErrorInvalid": "Invalid or revoked token. Please log in again.",
+  "googleErrorScopes": "Permissions missing. Please grant access to your calendar.",
+  "googleErrorNetwork": "Cannot reach Google to validate token.",
+  "googleConnected": "Google is connected",
+  "googleNotConnected": "Google is not connected",
+  "googleCalendarIdLabel": "Calendar ID",
+  "googleMaxResultsLabel": "Max results",
+  "googleMaxResultsInvalid": "Enter a positive number",
+  "widgetNameGoogleCalendarUpcoming": "Google Calendar Upcoming",
+  "widgetNameGoogleCalendarNextTwoDay": "Two days",
+  "googleCalendarMissingToken": "Google token missing (open settings)",
+  "googleCalendarReady": "Google upcoming with",
+  "googleCalendarNextTwoDays": "Google next two days with",
+  "maxResults": "Max results: {count}",
+  "@maxResults": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  "upload": "Upload",
+  "configGestures": "Gestures",
+  "homeAssistantMap": "Home Assistant Map",
+  "personalData": "Personal Data",
+  "haDisableSnapping": "Disable grid snapping",
+  "haEnableSnapping": "Enable grid snapping",
+  "haRenameDashboard": "Rename current dashboard",
+  "haAddDashboard": "Create a new dashboard",
+  "haDeleteDashboard": "Permanently delete this dashboard",
+  "haSwitchDashboard": "Switch between your dashboards",
+  "haRefreshStates": "Refresh Home Assistant live states",
+  "haEmptyHint": "Long press to add your first entity",
+  "haDeleteConfirmTitle": "Delete Dashboard",
+  "haDeleteConfirmContent": "Are you sure you want to delete '{name}'? This will permanently remove all items on this dashboard.",
+  "@haDeleteConfirmContent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "haConfigTitle": "Home Assistant Configuration",
+  "haTokenError": "Token Error",
+  "haUnreachable": "Unreachable",
+  "haConnectionFailed": "Connection Failed",
+  "haRetry": "Retry",
+  "haConfigureConnection": "Configure Connection",
+  "haTokenErrorMessage": "Home Assistant token is missing or expired. Please check your backend connection.",
+  "haUnreachableMessage": "Home Assistant URL is incorrect or the server is down.",
+  "haNewDashboard": "New Dashboard",
+  "haRenameDashboardTitle": "Rename Dashboard",
+  "haDashboardNameField": "Name",
+  "haConfigUrlLabel": "Server URL",
+  "haConfigUrlHint": "http://ip:port",
+  "haConfigTokenLabel": "Long-Lived Access Token",
+  "haConfigTest": "Test",
+  "haConfigSuccess": "Connection Successful!",
+  "haConfigInvalidUrl": "Please enter a valid URL",
+  "haConfigRequiredField": "This field is required",
+  "widgetNameHASingleDashboard": "SingleDashboard",
+  "haSelectDashboard": "Select Dashboard",
+  "haNoDashboardsFound": "No dashboards found for this user. Create one in the HA Map settings first.",
+  "haSearchEntities": "Search entities...",
+  "haFilterAll": "All",
+  "haFilterBool": "Boolean",
+  "haFilterNumeric": "Numeric",
+  "haFilterOnlyAvailable": "Only Available",
+  "haStateUnavailable": "Unavailable",
+  "haFilterString": "Text/Status",
+  "haDeleteSymbol": "Delete Symbol",
+  "haDeleteSymbolConfirm": "Are you sure you want to delete this symbol?",
+  "haConfigNoLocalError": "Addresses ending in '.local' are not supported",
+  "widgetNameCataasImage": "Random Cat Image",
+  "widgetNameCataasGif": "Random Cat GIF",
+  "widgetNameRandomDog": "Random Dog Image",
+  "widgetNamePokemonOfTheDay": "Pokémon des Tages",
+  "widgetNameRandomPokemon": "Zufälliges Pokémon",
+  "widgetNameRandomCompliment": "Random Compliment",
+  "widgetNameRandomInsult": "Random Insult",
+  "widgetNameRandomUselessFact": "Random Useless Fact",
+  "randomInsultAllow18Plus": "Allow 18+ insults",
+  "editWidgetProperties": "Edit Widget Style",
+  "widgetNameHAMultiDashboard": "Multi-Dashboard",
+  "haSelectDashboards": "Configure Dashboards",
+  "haAvailableDashboards": "Select dashboards to include",
+  "widgetNameBusStop": "Bus Stop",
+  "widgetNameSystemUsage": "System Usage",
+  "haConfigureBusStop": "Configure Bus Stop",
+  "haBusLine": "Line",
+  "haDepartures": "Departures",
+  "haAddBusLine": "Add Line",
+  "haLineNumber": "Line Number",
+  "haAddDeparture": "Add Departure",
+  "haEditBusLine": "Edit Line",
+  "fontSize": "Font Size",
+  "fontFamily": "Font Family",
+  "textInput": "Text",
+  "adminScreenTitle": "Admin",
+  "adminCreateUserTitle": "Create User",
+  "adminFieldUsername": "Username",
+  "adminFieldPassword": "Password",
+  "adminFieldConfirmPassword": "Confirm Password",
+  "adminCreateUserButton": "Create User",
+  "adminValidatorPasswordMismatch": "Passwords do not match.",
+  "adminUserCreateSuccess": "User created successfully.",
+  "adminTokenAddSuccess": "Token added successfully.",
+  "validatorRequired": "This field is required.",
+  "errorInvalidCredentials": "Invalid credentials.",
+  "errorConfigError": "Configuration error.",
+  "errorInvalidMessage": "Invalid message.",
+  "errorUnknown": "An unknown error occurred.",
+  "errorAddToken": "Token addition failed.",
+  "errorFaceTrainingSuccess": "Face training successful.",
+  "errorFaceTrainingFailed": "Face training failed.",
+  "errorAddCreateUserSuccess": "User created successfully.",
+  "errorAddCreateUserFailed": "Failed to create user.",
+  "errorUnauthorized": "Unauthorized action.",
+  "errorServiceNotAvailable": "Service not available.",
+  "errorFrontendUpdated": "Frontend successfully updated.",
+  "errorBackendUpdated": "Backend successfully updated.",
+  "errorUpdateFailed": "Update failed.",
+  "adminDeviceSettingsTitle": "Device Settings",
+  "adminDeviceName": "Device Name",
+  "adminAutoSwitch": "Auto Switch",
+  "adminAutoSwitchTooltip": "Automatically switches users via FaceID, otherwise defaults to Guest. Recommended only with an active camera. Can also be used to auto-logout.",
+  "adminApplySettings": "Apply Settings",
+  "adminSettingsSuccess": "Device settings updated.",
+  "adminUpdateSectionTitle": "Updates",
+  "adminCheckForUpdates": "Check for updates",
+  "adminUpdatesNotChecked": "No update check has been performed yet.",
+  "adminNoUpdatesFound": "No new updates are available.",
+  "adminNoUpdatesAvailable": "No update available",
+  "adminFrontendUpdate": "Frontend",
+  "adminBackendUpdate": "Backend",
+  "adminTomlUploadTitle": "TOML configuration",
+  "adminTomlUploadDescription": "Choose a TOML file from your device and send its content to the backend.",
+  "adminTomlChooseFile": "Choose TOML file",
+  "adminTomlNoFileSelected": "No TOML file selected yet.",
+  "adminTomlSelectedFile": "Selected file: {fileName}",
+  "@adminTomlSelectedFile": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "adminTomlUploadButton": "Upload config",
+  "adminTomlReadError": "The selected TOML file could not be read.",
+  "adminTomlUploadSuccess": "Configuration uploaded successfully.",
+  "adminTomlUploadError": "The TOML configuration is invalid.",
+  "adminTomlUploadErrorWithMessage": "The TOML configuration is invalid: {message}",
+  "@adminTomlUploadErrorWithMessage": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "adminTomlRestartTitle": "Restart smirror?",
+  "adminTomlRestartMessage": "The new configuration was saved. Restarting smirror is recommended. Do you want to restart now?",
+  "adminTomlRestartYes": "Yes",
+  "syncAvailableTitle": "Update Available",
+  "syncAvailableMessage": "A newer view configuration is available from the connected device. Do you want to update?",
+  "welcomeUpdateAvailableTitle": "Device update available",
+  "welcomeFrontendUpdateAvailable": "A frontend update is available: {version}",
+  "@welcomeFrontendUpdateAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "0.1.0 -> 0.2.0"
+      }
+    }
+  },
+  "welcomeBackendUpdateAvailable": "A backend update is available: {version}",
+  "@welcomeBackendUpdateAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "0.1.0 -> 0.2.0"
+      }
+    }
+  },
+  "welcomeUpdateAvailableAction": "Please switch to the admin account and update the device.",
+  "update": "Update",
+  "updateAll": "Update All",
+  "haNoDashboards": "No dashboards yet. Create one to get started.",
+  "adminUsersTitle": "Users",
+  "adminNoUsers": "No users found.",
+  "adminColumnUser": "User",
+  "adminDeleteUser": "Delete user",
+  "adminDeleteConfirmTitle": "Delete user?",
+  "adminDeleteConfirmMessage": "User \"{name}\" will be permanently deleted. This action cannot be undone.",
+  "@adminDeleteConfirmMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "adminDeleteConfirmButton": "Delete",
+  "adminTokenTitle": "API Tokens",
+  "adminTokenMissingWarning": "Token for {provider} is missing. Please add it in the Admin Settings.",
+  "@adminTokenMissingWarning": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "Google"
+      }
+    }
+  },
+  "adminTokenPresent": "Connected",
+  "adminTokenAbsent": "Not Configured",
+  "adminTokenAdd": "Add Token",
+  "adminTokenDelete": "Delete Token",
+  "adminTokenDeleteConfirmTitle": "Delete Token?",
+  "adminTokenDeleteConfirmText": "Are you sure you want to delete this token? This cannot be undone.",
+  "adminTokenDeleteConfirmYes": "Yes, Delete",
+  "adminTokenDeleteConfirmNo": "Cancel",
+  "adminTokenAuthorize": "Authorize",
+  "adminEditTokenTitle": "Edit Token: {provider}",
+  "@adminEditTokenTitle": {
+    "placeholders": {
+      "provider": {
+        "type": "String",
+        "example": "OpenWeather"
+      }
+    }
+  },
+  "adminEditTokenSave": "Save Token",
+  "adminGoogleManualConfigTitle": "Mirror backend has no Google Client ID. Enter manually:",
+  "adminGoogleClientId": "Google Client ID",
+  "adminGoogleClientSecret": "Google Client Secret (Optional)",
+  "adminGoogleApplyLocal": "Apply Credentials Locally",
+  "adminDeleteProtectedGuest": "The guest account cannot be deleted.",
+  "adminDeleteProtectedAdmin": "The admin account cannot be deleted.",
+  "adminRightsProtectedGuest": "The guest account cannot have any rights for safety reasons.",
+  "adminRightsProtectedAdmin": "The admin account always has all rights.",
+  "biometrics": "Biometrics",
+  "biometricsTitle": "Biometrics & Security",
+  "biometricsUserEnrollment": "User Enrollment",
+  "biometricsFaceRecognition": "Face Recognition",
+  "biometricsFaceSubtitle": "Register facial data for current user",
+  "biometricsTrainFace": "Train Face",
+  "biometricsFingerprint": "Fingerprint",
+  "biometricsFingerprintSubtitle": "Register fingerprint for current user",
+  "biometricsTrainFinger": "Train Finger",
+  "biometricsFaceTrainingStart": "Starting Face Training...",
+  "biometricsFingerprintStart": "Fingerprint training requested (waiting for backend).",
+  "deviceConnection": "Device Connection",
+  "currentUser": "Current User",
+  "changeUser": "Change User",
+  "changeUserLogin": "Change User Login",
+  "username": "Username",
+  "password": "Password",
+  "apply": "Apply",
+  "loginErrorCredentials": "Please check your username or password.",
+  "loginErrorNetwork": "Could not connect. Please try again.",
+  "setupAppearance": "Appearance",
+  "setupSystem": "System",
+  "setupThemeLight": "Light",
+  "setupThemeDark": "Dark",
+  "setupThemeSystem": "System",
+  "logNoLogsAvailable": "No logs available",
+  "logTime": "Time",
+  "logLevel": "Level",
+  "logMessage": "Message",
+  "logRefresh": "Refresh Logs",
+  "homeControlsTitle": "Controls",
+  "homeWaitingForStatus": "Waiting for status...",
+  "haConfigEntityTitle": "Configure {entityId}",
+  "@haConfigEntityTitle": {
+    "placeholders": {
+      "entityId": {}
+    }
+  },
+  "haConfigStandardStyle": "Standard Style (Base/Off State)",
+  "haConfigDisplayName": "Display Name",
+  "haConfigTriggerValue": "Trigger Value (>=)",
+  "haEntityPickerError": "Error: {error}",
+  "@haEntityPickerError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "haSelectBackgroundImage": "Select Background Image",
+  "haBusEditLine": "Edit Line {num}",
+  "@haBusEditLine": {
+    "placeholders": {
+      "num": {}
+    }
+  },
+  "haBusAutoGenerate": "Auto-Generate",
+  "haBusLineNumberLabel": "Line Number",
+  "haBusFrequency": "Frequency (minutes)",
+  "haBusGenerateSchedule": "Generate Schedule",
+  "haBusNoRanges": "No ranges added yet.",
+  "haBusTimeRangeTitle": "{start} - {end}",
+  "@haBusTimeRangeTitle": {
+    "placeholders": {
+      "start": {},
+      "end": {}
+    }
+  },
+  "haBusTimeRangeSubtitle": "Every {freq} mins",
+  "@haBusTimeRangeSubtitle": {
+    "placeholders": {
+      "freq": {}
+    }
+  },
+  "haBusAddTimeRange": "Add Time Range",
+  "haBusGenerate": "Generate",
+  "haBusAdd": "Add",
+  "editTextLabelTitle": "Edit Text Label",
+  "editImagePickPhotos": "Pick Photos",
+  "languageEnglish": "English",
+  "languageGerman": "Deutsch",
+  "appBackendDemoTitle": "App → Backend WebSocket Demo",
+  "homeWakeUp": "Wake Up",
+  "homeStandBy": "StandBy",
+  "homeActivateUser": "Activate User",
+  "homeActivateGuest": "Activate Guest",
+  "homeNextTheme": "Toggle Theme",
+  "homeSystemStatus": "System Status",
+  "homeFrontend": "Frontend",
+  "homeOn": "ON",
+  "homeOff": "OFF",
+  "homeAutoSwitch": "Auto Switch",
+  "homeActiveUserStatus": "Active User",
+  "homeNone": "None",
+  "addDevice": "Add Device",
+  "close": "Close",
+  "deviceName": "Device Name",
+  "ipAddress": "IP Address",
+  "port": "Port",
+  "noDevicesConfigured": "No devices configured.",
+  "testResultSuccess": "Connection Successful",
+  "testResultUnauthorized": "Connected (Requires Login)",
+  "testResultOutdated": "App version too old!",
+  "testResultFailed": "Connection Failed",
+  "upgradeRequiredTitle": "App Update Required",
+  "upgradeRequiredMessage": "The connected device requires a newer version of this app. Please update the app to continue.",
+  "setupDangerZone": "Danger Zone",
+  "setupFactoryReset": "Factory Reset",
+  "setupFactoryResetConfirmTitle": "Factory Reset",
+  "setupFactoryResetConfirmMessage": "Are you sure you want to completely reset the app? All local data, dashboards, and settings will be permanently deleted. This action cannot be undone.",
+  "logThreadId": "Thread",
+  "logSourceLocation": "Source",
+  "setupVersion": "Version {version}",
+  "@setupVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "developerModeEnabled": "Developer mode enabled",
+  "developerModeDisabled": "Developer mode disabled",
+  "developerMode": "Developer Mode",
+  "emulateHomeAssistant": "Emulate Home Assistant",
+  "emulatedConnection": "Emulated Connection",
+  "developerLogs": "Developer Logs",
+  "viewSettingsTitle": "View Settings",
+  "viewMetadataTooltip": "View Metadata",
+  "viewLanguageLabel": "Language",
+  "viewThemeLabel": "Theme",
+  "themeBlue": "Blue",
+  "themeNeon": "Neon",
+  "setupDialogTitle": "Initial Device Setup",
+  "setupDialogDescription": "Please configure your new device. Change the default name and set a secure admin password.",
+  "setupSuccessMessage": "Device successfully configured!",
+  "setupErrorMessage": "Failed to update settings. Please try again.",
+  "setupAdminPasswordLabel": "New Admin Password",
+  "setupAdminPasswordConfirmLabel": "Confirm New Password",
+  "changePassword": "Change Password",
+  "changePasswordTitle": "Change Password",
+  "newPassword": "New Password",
+  "confirmNewPassword": "Confirm New Password",
+  "passwordChangeSuccess": "Password changed successfully.",
+  "passwordChangeError": "Failed to change password.",
+  "homeLedControl": "LED Control",
+  "brightness": "Brightness",
+  "guestFallbackMessage": "Logged in as Guest. Your stored credentials might be outdated or the password was changed.",
+  "landingTitle": "Connect your device",
+  "landingSubtitle": "Choose a device, connect to it, and sign in with the user data stored on that device before entering the app.",
+  "landingDeviceSectionTitle": "1. Connect to a device",
+  "landingDeviceSectionSubtitle": "Select a saved device or add a new one with its IP address and port.",
+  "landingLoginSectionTitle": "2. Sign in for this device",
+  "landingLoginSectionSubtitle": "Use the credentials that belong to the selected device.",
+  "landingNoConnectionPossible": "No connection to this device is possible right now. Check the device, network, IP address, and port.",
+  "landingWrongCredentialsForDevice": "The saved credentials are wrong for this device. Please sign in again with the correct user data.",
+  "landingSelectDeviceFirst": "Select or add a device before you sign in.",
+  "landingLoginFormError": "Enter both username and password.",
+  "landingDeviceFormError": "Enter a valid IP address and port.",
+  "landingNoActiveDevice": "No device selected",
+  "landingConnectedAs": "Connected as {username}.",
+  "@landingConnectedAs": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "locationSettingsTitle": "Location Settings",
+  "getCurrentLocation": "Get Current Location",
+  "errorFetchingLocation": "Failed to fetch current location. Make sure GPS is enabled and permissions are granted.",
+  "locationSaved": "Location saved successfully.",
+  "locationConfig": "Location Config",
+  "rainRadarZoomLabel": "Zoom",
+  "rainRadarForecastHoursLabel": "Forecast horizon",
+  "widgetNameDigitalClock": "Digital Clock",
+  "digitalClockSettingsTitle": "Digital Clock Settings",
+  "digitalClock24hLabel": "Use 24-hour format"
+}
