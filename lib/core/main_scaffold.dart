@@ -37,6 +37,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   StreamSubscription<void>? _upgradeSub;
   StreamSubscription<void>? _guestFallbackSub;
   StreamSubscription<WsStatus>? _statusSub;
+  StreamSubscription<User?>? _userSub;
   bool _hasConnectedOnce = false;
 
   late AppLocalizations _loc;
@@ -60,6 +61,15 @@ class _MainScaffoldState extends State<MainScaffold> {
       }
     });
 
+    final userService = GetIt.I<UserService>();
+    _userSub = userService.onUserChanged.listen((user) {
+      if (user == null && _hasConnectedOnce) {
+        setState(() {
+          _hasConnectedOnce = false;
+        });
+      }
+    });
+
     if (ws.statusValue == WsStatus.connected) {
       _hasConnectedOnce = true;
     }
@@ -70,6 +80,7 @@ class _MainScaffoldState extends State<MainScaffold> {
     _upgradeSub?.cancel();
     _guestFallbackSub?.cancel();
     _statusSub?.cancel();
+    _userSub?.cancel();
     super.dispose();
   }
 

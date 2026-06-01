@@ -531,6 +531,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorBackendUpdated => 'Backend successfully updated.';
 
   @override
+  String get errorWebappUpdated => 'Webapp successfully updated.';
+
+  @override
   String get errorUpdateFailed => 'Update failed.';
 
   @override
@@ -573,6 +576,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminBackendUpdate => 'Backend';
+
+  @override
+  String get adminWebappUpdate => 'Webapp';
 
   @override
   String get adminTomlUploadTitle => 'TOML configuration';
@@ -637,6 +643,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String welcomeBackendUpdateAvailable(String version) {
     return 'A backend update is available: $version';
+  }
+
+  @override
+  String welcomeWebappUpdateAvailable(String version) {
+    return 'A webapp update is available: $version';
   }
 
   @override
@@ -1180,4 +1191,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get digitalClock24hLabel => 'Use 24-hour format';
+
+  @override
+  String get logout => 'Logout';
 }

@@ -6,6 +6,7 @@ import 'main_scaffold_navigation.dart';
 import 'responsive.dart';
 import 'package:smirror_app/l10n/app_localizations.dart';
 import 'main_scaffold.dart';
+import 'package:smirror_app/services/websocket_service.dart';
 
 class AdminScaffold extends StatefulWidget {
   const AdminScaffold({super.key});
@@ -191,6 +192,39 @@ class _AdminScaffoldState extends State<AdminScaffold> {
               ),
             ),
             const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: InkWell(
+                onTap: () {
+                  GetIt.I<WebSocketService>().logout();
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.redAccent.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.logout_rounded, size: 20, color: Colors.redAccent),
+                      const SizedBox(width: 12),
+                      Text(
+                        _loc.logout,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: Colors.redAccent,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const Divider(height: 1),
             const RailStatus(),
           ],
         ),
@@ -270,6 +304,40 @@ class _AdminScaffoldState extends State<AdminScaffold> {
                 }
                 return const SizedBox.shrink();
               }).toList(),
+            ),
+          ),
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: InkWell(
+              onTap: () {
+                Navigator.pop(context);
+                GetIt.I<WebSocketService>().logout();
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.redAccent.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.redAccent.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.logout_rounded, size: 20, color: Colors.redAccent),
+                    const SizedBox(width: 12),
+                    Text(
+                      _loc.logout,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
           const Divider(height: 1),

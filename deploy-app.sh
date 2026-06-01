@@ -112,20 +112,20 @@ package_target "web" "build/web"
 # ==============================================================================
 # 2. BUILD ANDROID (APK)
 # ==============================================================================
-echo ""
-echo "=========================================="
-echo "==> 2. Building Android"
-echo "=========================================="
-# Switched 'flutter' to 'fvm flutter'
-fvm flutter build apk --release
-
-# Stage the APK so it can be cleanly zipped into its own folder
-APK_STAGE="/tmp/smirror-apk-stage"
-rm -rf "$APK_STAGE"; mkdir -p "$APK_STAGE"
-cp build/app/outputs/flutter-apk/app-release.apk "$APK_STAGE/smirror-app.apk"
-
-package_target "android" "$APK_STAGE"
-rm -rf "$APK_STAGE"
+#echo ""
+#echo "=========================================="
+#echo "==> 2. Building Android"
+#echo "=========================================="
+## Switched 'flutter' to 'fvm flutter'
+#fvm flutter build apk --release
+#
+## Stage the APK so it can be cleanly zipped into its own folder
+#APK_STAGE="/tmp/smirror-apk-stage"
+#rm -rf "$APK_STAGE"; mkdir -p "$APK_STAGE"
+#cp build/app/outputs/flutter-apk/app-release.apk "$APK_STAGE/smirror-app.apk"
+#
+#package_target "android" "$APK_STAGE"
+#rm -rf "$APK_STAGE"
 
 
 # ==============================================================================

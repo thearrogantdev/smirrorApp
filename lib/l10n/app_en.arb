@@ -199,6 +199,7 @@
   "errorServiceNotAvailable": "Service not available.",
   "errorFrontendUpdated": "Frontend successfully updated.",
   "errorBackendUpdated": "Backend successfully updated.",
+  "errorWebappUpdated": "Webapp successfully updated.",
   "errorUpdateFailed": "Update failed.",
   "adminDeviceSettingsTitle": "Device Settings",
   "adminDeviceName": "Device Name",
@@ -213,6 +214,7 @@
   "adminNoUpdatesAvailable": "No update available",
   "adminFrontendUpdate": "Frontend",
   "adminBackendUpdate": "Backend",
+  "adminWebappUpdate": "Webapp",
   "adminTomlUploadTitle": "TOML configuration",
   "adminTomlUploadDescription": "Choose a TOML file from your device and send its content to the backend.",
   "adminTomlChooseFile": "Choose TOML file",
@@ -254,6 +256,15 @@
   },
   "welcomeBackendUpdateAvailable": "A backend update is available: {version}",
   "@welcomeBackendUpdateAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "0.1.0 -> 0.2.0"
+      }
+    }
+  },
+  "welcomeWebappUpdateAvailable": "A webapp update is available: {version}",
+  "@welcomeWebappUpdateAvailable": {
     "placeholders": {
       "version": {
         "type": "String",
@@ -488,5 +499,6 @@
   "rainRadarForecastHoursLabel": "Forecast horizon",
   "widgetNameDigitalClock": "Digital Clock",
   "digitalClockSettingsTitle": "Digital Clock Settings",
-  "digitalClock24hLabel": "Use 24-hour format"
+  "digitalClock24hLabel": "Use 24-hour format",
+  "logout": "Logout"
 }

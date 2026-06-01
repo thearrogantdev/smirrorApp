@@ -1100,6 +1100,12 @@ abstract class AppLocalizations {
   /// **'Backend successfully updated.'**
   String get errorBackendUpdated;
 
+  /// No description provided for @errorWebappUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Webapp successfully updated.'**
+  String get errorWebappUpdated;
+
   /// No description provided for @errorUpdateFailed.
   ///
   /// In en, this message translates to:
@@ -1183,6 +1189,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Backend'**
   String get adminBackendUpdate;
+
+  /// No description provided for @adminWebappUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Webapp'**
+  String get adminWebappUpdate;
 
   /// No description provided for @adminTomlUploadTitle.
   ///
@@ -1291,6 +1303,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A backend update is available: {version}'**
   String welcomeBackendUpdateAvailable(String version);
+
+  /// No description provided for @welcomeWebappUpdateAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'A webapp update is available: {version}'**
+  String welcomeWebappUpdateAvailable(String version);
 
   /// No description provided for @welcomeUpdateAvailableAction.
   ///
@@ -2293,6 +2311,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use 24-hour format'**
   String get digitalClock24hLabel;
+
+  /// No description provided for @logout.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout'**
+  String get logout;
 }
 
 class _AppLocalizationsDelegate

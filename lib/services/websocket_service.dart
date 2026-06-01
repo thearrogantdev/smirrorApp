@@ -88,6 +88,7 @@ class WebSocketService {
 
   // ---- connection serializer (never more than one attempt at a time) ----
   Future<void>? _connectingFuture;
+  int _connectionSessionId = 0;
 
 
 
@@ -182,10 +183,11 @@ class WebSocketService {
     final prefs = await SharedPreferences.getInstance();
 
     if (kIsWeb) {
-      _activeDevice = const DeviceConnection(
+      final currentHost = Uri.base.host.isNotEmpty ? Uri.base.host : 'localhost';
+      _activeDevice = DeviceConnection(
         id: 'web_localhost',
-        name: 'Localhost',
-        ip: 'localhost',
+        name: currentHost == 'localhost' ? 'Localhost' : currentHost,
+        ip: currentHost,
         port: 9002,
       );
       _devicesList = [_activeDevice!];
@@ -396,6 +398,29 @@ class WebSocketService {
     await _storage.deleteAll();
   }
 
+  Future<void> logout() async {
+    _connectionSessionId++;
+    _connectingFuture = null;
+    await clearCredentials();
+    _username = '';
+    _password = '';
+    _authRejected = false;
+    _upgradeRejected = false;
+
+    if (_channel != null) {
+      final oldChannel = _channel!;
+      _channel = null;
+      try {
+        unawaited(oldChannel.sink.close());
+      } catch (_) {}
+    }
+
+    _setStatus(WsStatus.disconnected);
+
+    _userService.changeUser(null);
+  }
+
+
   // Public: single entrypoint for (re)connecting; serialized by _connectingFuture.
   Future<void> _connect() {
     // Reuse in-flight attempt if present.
@@ -431,11 +456,14 @@ class WebSocketService {
   }
 
   Future<void> _connectLoop() async {
+    final sessionId = _connectionSessionId;
     if (_isDisposed || _authRejected || _upgradeRejected) return;
+    if (sessionId != _connectionSessionId) return;
 
     if (_version.isEmpty) {
       await loadVersionInfo();
     }
+    if (sessionId != _connectionSessionId) return;
 
     _setStatus(
       _statusValue == WsStatus.disconnected
@@ -447,6 +475,7 @@ class WebSocketService {
     try {
       if (_activeDevice == null) {
         await Future.delayed(const Duration(seconds: 2));
+        if (sessionId != _connectionSessionId) return;
         _setStatus(WsStatus.disconnected);
         return; // Cannot connect without device
       }
@@ -454,6 +483,7 @@ class WebSocketService {
       // If credentials are not configured, perform reachability check and short-circuit
       if (_username.isEmpty || _password.isEmpty) {
         final reachable = await _checkDeviceReachable(_activeDevice!.ip, _activeDevice!.port);
+        if (sessionId != _connectionSessionId) return;
         if (reachable) {
           _setStatus(WsStatus.unauthorized);
         } else {
@@ -476,6 +506,8 @@ class WebSocketService {
             httpUri,
           ).timeout(const Duration(seconds: 3));
           
+          if (sessionId != _connectionSessionId) return;
+
           if (response.statusCode == 401) {
             _authRejected = true;
             _setStatus(WsStatus.unauthorized);
@@ -487,6 +519,7 @@ class WebSocketService {
             return;
           }
         } catch (e) {
+          if (sessionId != _connectionSessionId) return;
           final msg = e.toString().toLowerCase();
           if (msg.contains('401') || msg.contains('unauthorized')) {
             _authRejected = true;
@@ -509,17 +542,38 @@ class WebSocketService {
           },
         );
         _channel = WebSocketChannel.connect(wsUri);
+        try {
+          await _channel!.ready.timeout(const Duration(seconds: 5));
+        } catch (webSocketError) {
+          if (sessionId != _connectionSessionId) return;
+          // In web browsers, WebSocket handshake failures (like 401 Unauthorized) 
+          // do not expose HTTP status codes or detailed error messages to JavaScript.
+          // We can determine if the failure is due to bad credentials by checking
+          // if the server itself is reachable.
+          final reachable = await _checkDeviceReachable(_activeDevice!.ip, _activeDevice!.port);
+          if (sessionId != _connectionSessionId) return;
+          if (reachable) {
+            _authRejected = true;
+            _setStatus(WsStatus.unauthorized);
+          } else {
+            _setStatus(WsStatus.disconnected);
+          }
+          rethrow;
+        }
       } else {
         final socket = await WebSocket.connect(
           'ws://${_activeDevice!.ip}:${_activeDevice!.port}/flutter',
           headers: _headers,
         ).timeout(const Duration(seconds: 5));
+        if (sessionId != _connectionSessionId) return;
         _channel = IOWebSocketChannel(socket);
       }
+      if (sessionId != _connectionSessionId) return;
       _retryDelay = 1;
 
       _listen();
       await _refreshUserContext();
+      if (sessionId != _connectionSessionId) return;
       _setStatus(WsStatus.connected);
 
       // Complete the ready gate (only if not already completed)
@@ -530,7 +584,8 @@ class WebSocketService {
       _flushOutbox();
       return; // success
     } catch (e) {
-      if (_isUnauthorizedError(e)) {
+      if (sessionId != _connectionSessionId) return;
+      if (_authRejected || _isUnauthorizedError(e)) {
         // Stop all retries until credentials change
         _authRejected = true;
         _setStatus(WsStatus.unauthorized);
@@ -559,23 +614,28 @@ class WebSocketService {
   }
 
   Future<void> _runBackgroundRetryLoop() async {
+    final sessionId = _connectionSessionId;
     if (_isDisposed || _authRejected || _upgradeRejected || _channel != null) return;
+    if (sessionId != _connectionSessionId) return;
 
     _setStatus(WsStatus.reconnecting);
 
     while (!_isDisposed &&
         !_authRejected &&
         !_upgradeRejected &&
-        _channel == null) {
+        _channel == null &&
+        sessionId == _connectionSessionId) {
       try {
         if (_activeDevice == null) {
           await Future.delayed(const Duration(seconds: 2));
+          if (sessionId != _connectionSessionId) return;
           continue; // Cannot connect without device
         }
 
         // If credentials are not configured, perform reachability check and short-circuit
         if (_username.isEmpty || _password.isEmpty) {
           final reachable = await _checkDeviceReachable(_activeDevice!.ip, _activeDevice!.port);
+          if (sessionId != _connectionSessionId) return;
           if (reachable) {
             _setStatus(WsStatus.unauthorized);
           } else {
@@ -587,6 +647,7 @@ class WebSocketService {
         if (_version.isEmpty) {
           await loadVersionInfo();
         }
+        if (sessionId != _connectionSessionId) return;
 
 
         if (kIsWeb) {
@@ -603,6 +664,8 @@ class WebSocketService {
               httpUri,
             ).timeout(const Duration(seconds: 3));
             
+            if (sessionId != _connectionSessionId) return;
+
             if (response.statusCode == 401) {
               _authRejected = true;
               _setStatus(WsStatus.unauthorized);
@@ -614,6 +677,7 @@ class WebSocketService {
               return;
             }
           } catch (e) {
+            if (sessionId != _connectionSessionId) return;
             final msg = e.toString().toLowerCase();
             if (msg.contains('401') || msg.contains('unauthorized')) {
               _authRejected = true;
@@ -636,17 +700,34 @@ class WebSocketService {
             },
           );
           _channel = WebSocketChannel.connect(wsUri);
+          try {
+            await _channel!.ready.timeout(const Duration(seconds: 5));
+          } catch (webSocketError) {
+            if (sessionId != _connectionSessionId) return;
+            final reachable = await _checkDeviceReachable(_activeDevice!.ip, _activeDevice!.port);
+            if (sessionId != _connectionSessionId) return;
+            if (reachable) {
+              _authRejected = true;
+              _setStatus(WsStatus.unauthorized);
+            } else {
+              _setStatus(WsStatus.disconnected);
+            }
+            rethrow;
+          }
         } else {
           final socket = await WebSocket.connect(
             'ws://${_activeDevice!.ip}:${_activeDevice!.port}/flutter',
             headers: _headers,
           ).timeout(const Duration(seconds: 5));
+          if (sessionId != _connectionSessionId) return;
           _channel = IOWebSocketChannel(socket);
         }
+        if (sessionId != _connectionSessionId) return;
         _retryDelay = 1;
 
         _listen();
         await _refreshUserContext();
+        if (sessionId != _connectionSessionId) return;
         _setStatus(WsStatus.connected);
 
         // Complete the ready gate (only if not already completed)
@@ -657,7 +738,8 @@ class WebSocketService {
         _flushOutbox();
         return; // success
       } catch (e) {
-        if (_isUnauthorizedError(e)) {
+        if (sessionId != _connectionSessionId) return;
+        if (_authRejected || _isUnauthorizedError(e)) {
           // Stop all retries until credentials change
           _authRejected = true;
           _setStatus(WsStatus.unauthorized);
@@ -676,6 +758,7 @@ class WebSocketService {
         final currentDeviceId = _activeDevice?.id;
         while (DateTime.now().isBefore(waitEnd)) {
           await Future.delayed(const Duration(milliseconds: 100));
+          if (sessionId != _connectionSessionId) return;
           if (_activeDevice?.id != currentDeviceId ||
               _isDisposed ||
               _channel != null) {
@@ -695,6 +778,8 @@ class WebSocketService {
     required String password,
     bool isAutomatic = false,
   }) async {
+    _connectionSessionId++;
+    _connectingFuture = null; // Clear the old serializer to force a new loop
     final changed = username != _username || password != _password;
     _username = username;
     _password = password;
@@ -704,11 +789,14 @@ class WebSocketService {
     _authRejected = false;
     _upgradeRejected = false;
 
-    // Force close any existing socket so headers are used next time
-    try {
-      await _channel?.sink.close();
-    } catch (_) {}
-    _channel = null;
+    // Force close any existing socket so headers are used next time (fire-and-forget)
+    if (_channel != null) {
+      final oldChannel = _channel!;
+      _channel = null;
+      try {
+        unawaited(oldChannel.sink.close());
+      } catch (_) {}
+    }
 
     // Prepare a fresh ready gate for this attempt
     _readyCompleter ??= Completer<void>();
@@ -740,11 +828,14 @@ class WebSocketService {
     _authRejected = false; // allow retry with existing creds
     _upgradeRejected = false;
 
-    // Close the old connection aggressively
-    try {
-      await _channel?.sink.close();
-    } catch (_) {}
-    _channel = null;
+    // Close the old connection aggressively (fire-and-forget)
+    if (_channel != null) {
+      final oldChannel = _channel!;
+      _channel = null;
+      try {
+        unawaited(oldChannel.sink.close());
+      } catch (_) {}
+    }
 
     // Prepare a new ready gate if needed
     _readyCompleter ??= Completer<void>();

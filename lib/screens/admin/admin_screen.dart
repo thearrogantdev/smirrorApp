@@ -47,8 +47,10 @@ class _AdminScreenState extends State<AdminScreen> {
   bool _isUploadingTomlConfig = false;
   bool _isUpdatingFrontend = false;
   bool _isUpdatingBackend = false;
+  bool _isUpdatingWebapp = false;
   String _currentFrontendVersion = "";
   String _currentBackendVersion = "";
+  String _currentWebappVersion = "";
 
   late final TextEditingController _deviceNameController;
   bool _autoSwitch = false;
@@ -195,6 +197,8 @@ class _AdminScreenState extends State<AdminScreen> {
         _isUpdatingFrontend = true;
       } else if (commandType == appmsg.AppSimpleCommandType.UPDATE_BACKEND) {
         _isUpdatingBackend = true;
+      } else if (commandType == appmsg.AppSimpleCommandType.UPDATE_WEBAPP) {
+        _isUpdatingWebapp = true;
       }
     });
     context.read<AppWebSocketBloc>().add(
@@ -388,6 +392,7 @@ class _AdminScreenState extends State<AdminScreen> {
       _availableUpdate?.versionFrontend,
     );
     final backendVersion = _normalizeVersion(_availableUpdate?.versionBackend);
+    final webappVersion = _normalizeVersion(_availableUpdate?.versionWebapp);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return BlocListener<BackAppWebSocketBloc, BackAppWebSocketState>(
@@ -397,7 +402,8 @@ class _AdminScreenState extends State<AdminScreen> {
           final updateAvailable = state.info.updateAvailable;
           final hasInitialUpdate =
               _normalizeVersion(updateAvailable?.versionFrontend).isNotEmpty ||
-              _normalizeVersion(updateAvailable?.versionBackend).isNotEmpty;
+              _normalizeVersion(updateAvailable?.versionBackend).isNotEmpty ||
+              _normalizeVersion(updateAvailable?.versionWebapp).isNotEmpty;
 
           setState(() {
             _users = newUsers;
@@ -411,6 +417,7 @@ class _AdminScreenState extends State<AdminScreen> {
             _currentBackendVersion = _normalizeVersion(
               state.info.versionBackend,
             );
+            _currentWebappVersion = "";
             _checkedForUpdates = true;
             _isCheckingForUpdates = false;
             _noNewUpdates = !hasInitialUpdate;
@@ -451,6 +458,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 _availableUpdate = backmsg.NewUpdateAvailableT(
                   versionFrontend: "",
                   versionBackend: _availableUpdate?.versionBackend,
+                  versionWebapp: _availableUpdate?.versionWebapp,
                 );
               }
             });
@@ -468,6 +476,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 _availableUpdate = backmsg.NewUpdateAvailableT(
                   versionFrontend: _availableUpdate?.versionFrontend,
                   versionBackend: "",
+                  versionWebapp: _availableUpdate?.versionWebapp,
                 );
               }
             });
@@ -478,10 +487,29 @@ class _AdminScreenState extends State<AdminScreen> {
               ),
             );
           } else if (state.result.errorCode ==
+              backmsg.ErrorCode.WEBAPP_UPDATED) {
+            setState(() {
+              _isUpdatingWebapp = false;
+              if (_availableUpdate != null) {
+                _availableUpdate = backmsg.NewUpdateAvailableT(
+                  versionFrontend: _availableUpdate?.versionFrontend,
+                  versionBackend: _availableUpdate?.versionBackend,
+                  versionWebapp: "",
+                );
+              }
+            });
+            _showAdminSnackBar(l10n.errorWebappUpdated, isSuccess: true);
+            context.read<AppWebSocketBloc>().add(
+              AppWebSocketSendSimpleCommandRequested(
+                commandType: appmsg.AppSimpleCommandType.GET_ADMIN_INFO,
+              ),
+            );
+          } else if (state.result.errorCode ==
               backmsg.ErrorCode.UPDATED_FAILED) {
             setState(() {
               _isUpdatingFrontend = false;
               _isUpdatingBackend = false;
+              _isUpdatingWebapp = false;
             });
             _showAdminSnackBar(
               state.result.errorMessage?.isNotEmpty == true
@@ -671,7 +699,7 @@ class _AdminScreenState extends State<AdminScreen> {
               children: [
                 _buildGeneralTab(l10n, isDark),
                 _buildUsersTab(l10n, isDark),
-                _buildSystemTab(l10n, isDark, frontendVersion, backendVersion),
+                _buildSystemTab(l10n, isDark, frontendVersion, backendVersion, webappVersion),
               ],
             ),
           ),
@@ -724,48 +752,53 @@ class _AdminScreenState extends State<AdminScreen> {
                     ),
                   ],
                 ),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  leading: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(14),
+                child: Material(
+                  color: Colors.transparent,
+                  clipBehavior: Clip.antiAlias,
+                  borderRadius: BorderRadius.circular(24),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
                     ),
-                    child: const Icon(
-                      Icons.location_on_rounded,
-                      color: Colors.blue,
-                      size: 24,
+                    leading: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(
+                        Icons.location_on_rounded,
+                        color: Colors.blue,
+                        size: 24,
+                      ),
                     ),
-                  ),
-                  title: Text(
-                    l10n.locationSettingsTitle,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  subtitle: Text(
-                    l10n.locationConfig,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    title: Text(
+                      l10n.locationSettingsTitle,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
-                  ),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () async {
-                    final result = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => const LocationConfigDialog(),
-                    );
-                    if (!mounted) return;
-                    if (result == true) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(l10n.locationSaved)),
+                    subtitle: Text(
+                      l10n.locationConfig,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () async {
+                      final result = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => const LocationConfigDialog(),
                       );
-                    }
-                  },
+                      if (!mounted) return;
+                      if (result == true) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(l10n.locationSaved)),
+                        );
+                      }
+                    },
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -902,6 +935,7 @@ class _AdminScreenState extends State<AdminScreen> {
     bool isDark,
     String frontendVersion,
     String backendVersion,
+    String webappVersion,
   ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -917,10 +951,13 @@ class _AdminScreenState extends State<AdminScreen> {
                 noNewUpdates: _noNewUpdates,
                 currentFrontendVersion: _currentFrontendVersion,
                 currentBackendVersion: _currentBackendVersion,
+                currentWebappVersion: _currentWebappVersion,
                 availableFrontendVersion: frontendVersion,
                 availableBackendVersion: backendVersion,
+                availableWebappVersion: webappVersion,
                 isUpdatingFrontend: _isUpdatingFrontend,
                 isUpdatingBackend: _isUpdatingBackend,
+                isUpdatingWebapp: _isUpdatingWebapp,
                 onCheckForUpdates: _checkForUpdates,
                 onTriggerUpdate: _triggerUpdate,
                 l10n: l10n,

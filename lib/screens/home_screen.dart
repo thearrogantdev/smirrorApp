@@ -190,11 +190,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final frontendVersion = updateAvailable.versionFrontend?.trim() ?? '';
     final backendVersion = updateAvailable.versionBackend?.trim() ?? '';
+    final webappVersion = updateAvailable.versionWebapp?.trim() ?? '';
     final lines = <String>[
       if (frontendVersion.isNotEmpty)
         loc.welcomeFrontendUpdateAvailable(frontendVersion),
       if (backendVersion.isNotEmpty)
         loc.welcomeBackendUpdateAvailable(backendVersion),
+      if (webappVersion.isNotEmpty)
+        loc.welcomeWebappUpdateAvailable(webappVersion),
     ];
 
     if (lines.isEmpty) {
@@ -252,9 +255,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           setDialogState(() => _ledColor = color);
                           appBloc.add(
                             AppWebSocketChangeLEDs(
-                              red: color.red,
-                              green: color.green,
-                              blue: color.blue,
+                              red: color.r.round(),
+                              green: color.g.round(),
+                              blue: color.b.round(),
                               brightness: _ledBrightness.toInt(),
                             ),
                           );
@@ -291,9 +294,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         setDialogState(() => _ledBrightness = val);
                         appBloc.add(
                           AppWebSocketChangeLEDs(
-                            red: _ledColor.red,
-                            green: _ledColor.green,
-                            blue: _ledColor.blue,
+                            red: _ledColor.r.round(),
+                            green: _ledColor.g.round(),
+                            blue: _ledColor.b.round(),
                             brightness: val.toInt(),
                           ),
                         );

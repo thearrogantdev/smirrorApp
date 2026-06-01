@@ -10,10 +10,13 @@ class SystemUpdatesCard extends StatelessWidget {
     required this.noNewUpdates,
     required this.currentFrontendVersion,
     required this.currentBackendVersion,
+    required this.currentWebappVersion,
     required this.availableFrontendVersion,
     required this.availableBackendVersion,
+    required this.availableWebappVersion,
     required this.isUpdatingFrontend,
     required this.isUpdatingBackend,
+    required this.isUpdatingWebapp,
     required this.onCheckForUpdates,
     required this.onTriggerUpdate,
     required this.l10n,
@@ -24,10 +27,13 @@ class SystemUpdatesCard extends StatelessWidget {
   final bool noNewUpdates;
   final String currentFrontendVersion;
   final String currentBackendVersion;
+  final String currentWebappVersion;
   final String availableFrontendVersion;
   final String availableBackendVersion;
+  final String availableWebappVersion;
   final bool isUpdatingFrontend;
   final bool isUpdatingBackend;
+  final bool isUpdatingWebapp;
   final VoidCallback onCheckForUpdates;
   final ValueChanged<appmsg.AppSimpleCommandType> onTriggerUpdate;
   final AppLocalizations l10n;
@@ -42,9 +48,9 @@ class SystemUpdatesCard extends StatelessWidget {
   }) {
     final theme = Theme.of(context);
     final hasUpdate = newVersion.isNotEmpty;
-    final isReachable = currentVersion.isNotEmpty;
+    final isReachable = currentVersion.isNotEmpty || title == l10n.adminWebappUpdate;
     final displayedVersion =
-        currentVersion.isNotEmpty ? currentVersion : l10n.haUnreachable;
+        currentVersion.isNotEmpty ? currentVersion : (title == l10n.adminWebappUpdate ? "-" : l10n.haUnreachable);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -272,6 +278,18 @@ class SystemUpdatesCard extends StatelessWidget {
                 newVersion: availableBackendVersion,
                 isUpdating: isUpdatingBackend,
                 commandType: appmsg.AppSimpleCommandType.UPDATE_BACKEND,
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Divider(),
+              ),
+              _buildUpdateStatusRow(
+                context: context,
+                title: l10n.adminWebappUpdate,
+                currentVersion: currentWebappVersion,
+                newVersion: availableWebappVersion,
+                isUpdating: isUpdatingWebapp,
+                commandType: appmsg.AppSimpleCommandType.UPDATE_WEBAPP,
               ),
               if (!checked || noNewUpdates) ...[
                 const SizedBox(height: 16),
