@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -103,6 +104,7 @@ class WebSocketService {
 
   String get username => _username;
   String get password => _password;
+  String get version => _version;
 
   Map<String, String> get _headers => {
     'v': _version,
@@ -268,8 +270,15 @@ class WebSocketService {
       _activeDeviceController.add(_activeDevice);
     }
 
-    final username = await _storage.read(key: _keyUsername) ?? '';
-    final password = await _storage.read(key: _keyPassword) ?? '';
+    final String username;
+    final String password;
+    if (kIsWeb) {
+      username = prefs.getString(_keyUsername) ?? '';
+      password = prefs.getString(_keyPassword) ?? '';
+    } else {
+      username = await _storage.read(key: _keyUsername) ?? '';
+      password = await _storage.read(key: _keyPassword) ?? '';
+    }
     await applyCredentialsAndConnect(
       username: username,
       password: password,
@@ -390,12 +399,24 @@ class WebSocketService {
   Future<void> saveCredentials({String? username, String? password}) async {
     if (username != null) _username = username;
     if (password != null) _password = password;
-    await _storage.write(key: _keyUsername, value: _username);
-    await _storage.write(key: _keyPassword, value: _password);
+    if (kIsWeb) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_keyUsername, _username);
+      await prefs.setString(_keyPassword, _password);
+    } else {
+      await _storage.write(key: _keyUsername, value: _username);
+      await _storage.write(key: _keyPassword, value: _password);
+    }
   }
 
   Future<void> clearCredentials() async {
-    await _storage.deleteAll();
+    if (kIsWeb) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_keyUsername);
+      await prefs.remove(_keyPassword);
+    } else {
+      await _storage.deleteAll();
+    }
   }
 
   Future<void> logout() async {
@@ -493,47 +514,6 @@ class WebSocketService {
       }
 
       if (kIsWeb) {
-        // Pre-flight check via HTTP to detect 401 or 426
-        try {
-          final httpUri = Uri.parse('http://${_activeDevice!.ip}:${_activeDevice!.port}/flutter').replace(
-            queryParameters: {
-              'v': _version,
-              'un': _username,
-              'pw': _password,
-            },
-          );
-          final response = await http.get(
-            httpUri,
-          ).timeout(const Duration(seconds: 3));
-          
-          if (sessionId != _connectionSessionId) return;
-
-          if (response.statusCode == 401) {
-            _authRejected = true;
-            _setStatus(WsStatus.unauthorized);
-            return;
-          } else if (response.statusCode == 426) {
-            _upgradeRejected = true;
-            _upgradeRequired.add(null);
-            _setStatus(WsStatus.disconnected);
-            return;
-          }
-        } catch (e) {
-          if (sessionId != _connectionSessionId) return;
-          final msg = e.toString().toLowerCase();
-          if (msg.contains('401') || msg.contains('unauthorized')) {
-            _authRejected = true;
-            _setStatus(WsStatus.unauthorized);
-            return;
-          }
-          if (msg.contains('426') || msg.contains('upgrade')) {
-            _upgradeRejected = true;
-            _upgradeRequired.add(null);
-            _setStatus(WsStatus.disconnected);
-            return;
-          }
-        }
-
         final wsUri = Uri.parse('ws://${_activeDevice!.ip}:${_activeDevice!.port}/flutter').replace(
           queryParameters: {
             'v': _version,
@@ -541,15 +521,59 @@ class WebSocketService {
             'pw': _password,
           },
         );
+        print('WS: Connecting to WebSocket at $wsUri');
         _channel = WebSocketChannel.connect(wsUri);
         try {
           await _channel!.ready.timeout(const Duration(seconds: 5));
+          print('WS: WebSocket connection established successfully.');
         } catch (webSocketError) {
           if (sessionId != _connectionSessionId) return;
-          // In web browsers, WebSocket handshake failures (like 401 Unauthorized) 
-          // do not expose HTTP status codes or detailed error messages to JavaScript.
-          // We can determine if the failure is due to bad credentials by checking
-          // if the server itself is reachable.
+          print('WS: WebSocket handshake failed. Error: $webSocketError. Initiating HTTP diagnostics...');
+
+          // Pre-flight check via HTTP to detect 401 or 426
+          try {
+            final httpUri = Uri.parse('http://${_activeDevice!.ip}:${_activeDevice!.port}/flutter').replace(
+              queryParameters: {
+                'v': _version,
+                'un': _username,
+                'pw': _password,
+              },
+            );
+            print('WS diagnostic: HTTP GET check starting...');
+            final response = await http.get(
+              httpUri,
+              headers: _getWebHandshakeHeaders(_version.isEmpty ? '0.1' : _version),
+            ).timeout(const Duration(seconds: 3));
+            print('WS diagnostic: HTTP GET check response: ${response.statusCode}');
+            
+            if (sessionId != _connectionSessionId) return;
+
+            if (response.statusCode == 401) {
+              _authRejected = true;
+              _setStatus(WsStatus.unauthorized);
+              return;
+            } else if (response.statusCode == 426) {
+              _upgradeRejected = true;
+              _upgradeRequired.add(null);
+              _setStatus(WsStatus.disconnected);
+              return;
+            }
+          } catch (e) {
+            if (sessionId != _connectionSessionId) return;
+            final msg = e.toString().toLowerCase();
+            if (msg.contains('401') || msg.contains('unauthorized')) {
+              _authRejected = true;
+              _setStatus(WsStatus.unauthorized);
+              return;
+            }
+            if (msg.contains('426') || msg.contains('upgrade')) {
+              _upgradeRejected = true;
+              _upgradeRequired.add(null);
+              _setStatus(WsStatus.disconnected);
+              return;
+            }
+          }
+
           final reachable = await _checkDeviceReachable(_activeDevice!.ip, _activeDevice!.port);
           if (sessionId != _connectionSessionId) return;
           if (reachable) {
@@ -598,7 +622,7 @@ class WebSocketService {
         _setStatus(WsStatus.disconnected);
         return;
       }
-      if (kDebugMode) print('WS initial connect failed: $e');
+      print('WS initial connect failed: $e');
 
       // The initial attempt failed. Set status to disconnected
       // so the UI knows immediately and can show the landing page.
@@ -651,47 +675,6 @@ class WebSocketService {
 
 
         if (kIsWeb) {
-          // Pre-flight check via HTTP to detect 401 or 426
-          try {
-            final httpUri = Uri.parse('http://${_activeDevice!.ip}:${_activeDevice!.port}/flutter').replace(
-              queryParameters: {
-                'v': _version,
-                'un': _username,
-                'pw': _password,
-              },
-            );
-            final response = await http.get(
-              httpUri,
-            ).timeout(const Duration(seconds: 3));
-            
-            if (sessionId != _connectionSessionId) return;
-
-            if (response.statusCode == 401) {
-              _authRejected = true;
-              _setStatus(WsStatus.unauthorized);
-              return;
-            } else if (response.statusCode == 426) {
-              _upgradeRejected = true;
-              _upgradeRequired.add(null);
-              _setStatus(WsStatus.disconnected);
-              return;
-            }
-          } catch (e) {
-            if (sessionId != _connectionSessionId) return;
-            final msg = e.toString().toLowerCase();
-            if (msg.contains('401') || msg.contains('unauthorized')) {
-              _authRejected = true;
-              _setStatus(WsStatus.unauthorized);
-              return;
-            }
-            if (msg.contains('426') || msg.contains('upgrade')) {
-              _upgradeRejected = true;
-              _upgradeRequired.add(null);
-              _setStatus(WsStatus.disconnected);
-              return;
-            }
-          }
-
           final wsUri = Uri.parse('ws://${_activeDevice!.ip}:${_activeDevice!.port}/flutter').replace(
             queryParameters: {
               'v': _version,
@@ -699,11 +682,59 @@ class WebSocketService {
               'pw': _password,
             },
           );
+          print('WS background retry: Connecting to WebSocket at $wsUri');
           _channel = WebSocketChannel.connect(wsUri);
           try {
             await _channel!.ready.timeout(const Duration(seconds: 5));
+            print('WS background retry: WebSocket connection established successfully.');
           } catch (webSocketError) {
             if (sessionId != _connectionSessionId) return;
+            print('WS background retry: WebSocket handshake failed. Error: $webSocketError. Initiating HTTP diagnostics...');
+
+            // Pre-flight check via HTTP to detect 401 or 426
+            try {
+              final httpUri = Uri.parse('http://${_activeDevice!.ip}:${_activeDevice!.port}/flutter').replace(
+                queryParameters: {
+                  'v': _version,
+                  'un': _username,
+                  'pw': _password,
+                },
+              );
+              print('WS background retry diagnostic: HTTP GET check starting...');
+              final response = await http.get(
+                httpUri,
+                headers: _getWebHandshakeHeaders(_version.isEmpty ? '0.1' : _version),
+              ).timeout(const Duration(seconds: 3));
+              print('WS background retry diagnostic: HTTP GET check response: ${response.statusCode}');
+              
+              if (sessionId != _connectionSessionId) return;
+
+              if (response.statusCode == 401) {
+                _authRejected = true;
+                _setStatus(WsStatus.unauthorized);
+                return;
+              } else if (response.statusCode == 426) {
+                _upgradeRejected = true;
+                _upgradeRequired.add(null);
+                _setStatus(WsStatus.disconnected);
+                return;
+              }
+            } catch (e) {
+              if (sessionId != _connectionSessionId) return;
+              final msg = e.toString().toLowerCase();
+              if (msg.contains('401') || msg.contains('unauthorized')) {
+                _authRejected = true;
+                _setStatus(WsStatus.unauthorized);
+                return;
+              }
+              if (msg.contains('426') || msg.contains('upgrade')) {
+                _upgradeRejected = true;
+                _upgradeRequired.add(null);
+                _setStatus(WsStatus.disconnected);
+                return;
+              }
+            }
+
             final reachable = await _checkDeviceReachable(_activeDevice!.ip, _activeDevice!.port);
             if (sessionId != _connectionSessionId) return;
             if (reachable) {
@@ -752,7 +783,7 @@ class WebSocketService {
           _setStatus(WsStatus.disconnected);
           return;
         }
-        if (kDebugMode) print('WS background retry failed: $e');
+        print('WS background retry failed: $e');
 
         final waitEnd = DateTime.now().add(Duration(seconds: _retryDelay));
         final currentDeviceId = _activeDevice?.id;
@@ -851,20 +882,36 @@ class WebSocketService {
   }
 
   void _listen() {
+    print('WS listening to channel stream...');
     _subscription = _channel!.stream.listen(
       (data) {
-        if (data is List<int>) _incoming.add(data);
+        print('WS raw data received. Type: ${data.runtimeType}, Size/Length: ${data is List<int> ? data.length : (data is ByteBuffer ? data.lengthInBytes : "unknown")}');
+        if (data is List<int>) {
+          _incoming.add(data);
+        } else if (data is ByteBuffer) {
+          _incoming.add(data.asUint8List());
+        } else if (data is TypedData) {
+          final buffer = data.buffer;
+          _incoming.add(buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
+        } else if (data is String) {
+          print('WS string data (unexpected text frame): $data');
+          _incoming.add(utf8.encode(data));
+        }
       },
       onError: (err) {
-        if (kDebugMode) print('WebSocket error: $err');
+        print('WebSocket error: $err');
         _handleDisconnect();
       },
-      onDone: _handleDisconnect,
+      onDone: () {
+        print('WebSocket channel onDone triggered.');
+        _handleDisconnect();
+      },
       cancelOnError: true,
     );
   }
 
   void _handleDisconnect() {
+    print('WS handling disconnect. Flags - isDisposed: $_isDisposed, authRejected: $_authRejected, upgradeRejected: $_upgradeRejected');
     _subscription?.cancel();
     _subscription = null;
     _channel = null;

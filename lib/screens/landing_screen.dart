@@ -29,6 +29,16 @@ class _LandingScreenState extends State<LandingScreen> {
   String? _errorMessage;
 
   @override
+  void initState() {
+    super.initState();
+    if (_ws.version.isEmpty) {
+      _ws.loadVersionInfo().then((_) {
+        if (mounted) setState(() {});
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final compact = isMobile(context);
@@ -107,6 +117,16 @@ class _LandingScreenState extends State<LandingScreen> {
                                         ),
                                       ],
                                     ),
+                                  const SizedBox(height: 32),
+                                  Center(
+                                    child: Text(
+                                      'Version ${_ws.version}',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: isDark ? Colors.white30 : Colors.black38,
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -237,6 +257,14 @@ class _LandingScreenState extends State<LandingScreen> {
 
                         // Form content
                         _buildAuthContent(loc, activeDevice, status, isDark),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Version ${_ws.version}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.white30 : Colors.black38,
+                          ),
+                        ),
                       ],
                     ),
                   ),

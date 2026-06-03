@@ -104,7 +104,11 @@ class _SetupScreenState extends State<SetupScreen> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
 
-      await const FlutterSecureStorage().deleteAll();
+      try {
+        await const FlutterSecureStorage().deleteAll();
+      } catch (e) {
+        print('Factory reset secure storage clear failed (normal for web/http): $e');
+      }
 
       Restart.restartApp();
     }

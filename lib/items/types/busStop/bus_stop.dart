@@ -200,7 +200,7 @@ class BusStopWidgetType extends WidgetTypeDefinition {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             buildDefaultDragHandles: false,
-                            onReorderItem: (oldIdx, newIdx) {
+                            onReorder: (oldIdx, newIdx) {
                               if (newIdx > oldIdx) newIdx -= 1;
                               final newList = List<BusLinePOCO>.from(lines);
                               final item = newList.removeAt(oldIdx);
