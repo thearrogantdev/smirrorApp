@@ -201,3 +201,16 @@ class AppWebSocketUploadConfig extends AppWebSocketEvent {
   @override
   List<Object?> get props => [config];
 }
+
+class AppWebSocketRequestGoogleToken extends AppWebSocketEvent {
+  final String code;
+  final String adminPassword;
+
+  AppWebSocketRequestGoogleToken({
+    required this.code,
+    required this.adminPassword
+  });
+
+  @override
+  List<Object?> get props => [code, adminPassword];
+}

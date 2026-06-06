@@ -50,16 +50,24 @@ class GoogleTokenRepository extends TokenProvider<GoogleValidationResult> {
           switch (e) {
             case gsi.GoogleSignInAuthenticationEventSignIn():
               _currentUser = e.user;
+              currentUserNotifier.value = e.user;
             case gsi.GoogleSignInAuthenticationEventSignOut():
               _currentUser = null;
+              currentUserNotifier.value = null;
           }
         },
         onError: (_) {
           _currentUser = null;
+          currentUserNotifier.value = null;
         },
       );
     }
   }
+
+  final ValueNotifier<gsi.GoogleSignInAccount?> currentUserNotifier =
+      ValueNotifier<gsi.GoogleSignInAccount?>(null);
+
+  gsi.GoogleSignInAccount? get currentUser => _currentUser;
 
   // ---------- App Credentials ----------
   String? _clientId;
@@ -71,10 +79,10 @@ class GoogleTokenRepository extends TokenProvider<GoogleValidationResult> {
 
   // ---------- Platform gate ----------
   bool get _isGsiSupported =>
-      kIsWeb ||
-      defaultTargetPlatform == TargetPlatform.android ||
-      defaultTargetPlatform == TargetPlatform.iOS ||
-      defaultTargetPlatform == TargetPlatform.macOS;
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+       defaultTargetPlatform == TargetPlatform.iOS ||
+       defaultTargetPlatform == TargetPlatform.macOS);
 
   bool get _isDesktopOAuth =>
       defaultTargetPlatform == TargetPlatform.windows ||
@@ -96,7 +104,13 @@ class GoogleTokenRepository extends TokenProvider<GoogleValidationResult> {
     if (_isGsiSupported) {
       // Initialize GSI and attempt to restore previous session now that we have the clientId
       unawaited(_gsi.initialize(clientId: _clientId));
-      unawaited(_gsi.attemptLightweightAuthentication());
+      unawaited(Future(() async {
+        final user = await _gsi.attemptLightweightAuthentication();
+        if (user != null) {
+          _currentUser = user;
+          currentUserNotifier.value = user;
+        }
+      }));
     }
   }
 
@@ -262,12 +276,20 @@ class GoogleTokenRepository extends TokenProvider<GoogleValidationResult> {
     _authSub?.cancel();
     _authSub = null;
     _currentUser = null;
+    currentUserNotifier.value = null;
     _cachedAccessToken = null;
     _cachedRefreshToken = null;
     _cachedExpiry = null;
     // Note: We don't reset _clientId / _clientSecret here so they persist
     // across user sign-outs until manually re-initialized by the BLoC.
     super.resetToken();
+  }
+
+  @override
+  void reset() {
+    _currentUser = null;
+    currentUserNotifier.value = null;
+    super.reset();
   }
 
   Future<List<GoogleCalendarEntry>> fetchCalendars() async {

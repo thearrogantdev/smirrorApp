@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get_it/get_it.dart';
@@ -107,7 +108,9 @@ class _SetupScreenState extends State<SetupScreen> {
       try {
         await const FlutterSecureStorage().deleteAll();
       } catch (e) {
-        print('Factory reset secure storage clear failed (normal for web/http): $e');
+        if (kDebugMode) {
+          print('Factory reset secure storage clear failed (normal for web/http): $e');
+        }
       }
 
       Restart.restartApp();

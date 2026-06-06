@@ -12,7 +12,11 @@ import 'package:smirror_wire/generated/widget_internals_widget_internals_generat
 import 'package:smirror_app/l10n/app_localizations.dart' show AppLocalizations;
 import 'package:smirror_app/services/google_token_service.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
-
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:url_launcher/url_launcher.dart';
+import 'package:smirror_app/bloc/backendConnection/back_app_websocket_state.dart';
+import 'package:smirror_wire/generated/back_app_back_app_generated.dart' as backmsg;
+import 'package:smirror_app/services/websocket_service.dart';
 // Optional extra fields for a calendar-using widget.
 const _fMaxResults = 'k_maxResults';
 
@@ -63,10 +67,52 @@ Future<List<ViewConfigProperty>?> promptGoogleCalendarProperties(
   final backStream = context.read<BackAppWebSocketBloc>().stream;
   final repo = GetIt.I<GoogleTokenRepository>();
 
-  await repo.ensureTokenPresent(appBloc: appBloc, backStream: backStream);
+  // On Web, request and await the Google clientId from backend so GSI can initialize
+  if (kIsWeb && (repo.clientId == null || repo.clientId!.isEmpty)) {
+    appBloc.add(
+      AppWebSocketSendSimpleCommandRequested(
+        commandType: appmsg.AppSimpleCommandType.GET_GOOGLE_SECRET,
+      ),
+    );
+    for (int i = 0; i < 30; i++) {
+      if (repo.clientId != null && repo.clientId!.isNotEmpty) {
+        break;
+      }
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+  }
+
+  await repo.ensureTokenPresent(
+    appBloc: appBloc,
+    backStream: backStream,
+    force: true,
+  );
   if (!context.mounted) return null;
 
   final connected = ValueNotifier<bool>(repo.hasToken);
+
+  // Local state variables for manual OAuth copy-paste flow on Web
+  bool isWebLoading = false;
+  String? webErrorMessage;
+  final TextEditingController webUrlController = TextEditingController();
+
+  String? extractCode(String input) {
+    try {
+      final uri = Uri.parse(input.trim());
+      if (uri.queryParameters.containsKey('code')) {
+        return uri.queryParameters['code'];
+      }
+    } catch (_) {}
+    final reg = RegExp(r'[?&]code=([^&]+)');
+    final match = reg.firstMatch(input);
+    if (match != null) {
+      return Uri.decodeComponent(match.group(1)!);
+    }
+    if (input.length > 20 && !input.contains('/') && !input.contains('?')) {
+      return input;
+    }
+    return null;
+  }
 
   // 2. Read existing values
   List<String> existingIds = [];
@@ -107,6 +153,7 @@ Future<List<ViewConfigProperty>?> promptGoogleCalendarProperties(
       }
     }
   }
+  if (!context.mounted) return null;
 
   final values = await showConfigDialog<Map<String, dynamic>>(
     context: context,
@@ -128,49 +175,214 @@ Future<List<ViewConfigProperty>?> promptGoogleCalendarProperties(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (!isConnected) ...[
-
-                FilledButton.icon(
-                  onPressed: () async {
-                    appBloc.add(
-                      AppWebSocketSendSimpleCommandRequested(
-                        commandType: appmsg.AppSimpleCommandType.GET_GOOGLE_SECRET,
-                      ),
-                    );
-
-                    if (repo.clientId == null || repo.clientId!.isEmpty) {
-                      await Future.delayed(const Duration(milliseconds: 300));
-                    }
-
-                    if (repo.clientId == null || repo.clientId!.isEmpty) {
-                      if (!ctx.mounted) return;
-                      ScaffoldMessenger.of(ctx).showSnackBar(
-                        const SnackBar(
-                            content: Text("Google credentials not configured on backend.")),
-                      );
-                      return;
-                    }
-
-                    final headers = await repo.ensureAuthorizationHeaders(
-                      scopes: const ['https://www.googleapis.com/auth/calendar.readonly'],
-                      fromUserGesture: true,
-                    );
-
-                    if (headers != null) {
-                      repo.sendToBackend(appBloc: appBloc);
-                      calendars = await repo.fetchCalendars();
-                      // Ensure all existing IDs are in the list (or at least known)
-                      for (final id in existingIds) {
-                        final hasExisting = calendars.any((c) => c.id == id);
-                        if (!hasExisting && id.isNotEmpty && id != 'primary') {
-                          calendars.insert(0, GoogleCalendarEntry(id: id, summary: id));
-                        }
+                if (kIsWeb)
+                  StatefulBuilder(
+                    builder: (ctx2, setState) {
+                      if (isWebLoading) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 16),
+                              Text("Linking Google account... Please wait."),
+                            ],
+                          ),
+                        );
                       }
-                      connected.value = true;
-                    }
-                  },
-                  icon: const Icon(Icons.login),
-                  label: Text(loc.adminTokenAdd),
-                ),
+
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            "Google Calendar access requires authorization. Since this app runs on a local IP, follow these steps:",
+                            style: Theme.of(ctx).textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            "1. Click the button below to sign in and grant permission. It will open in a new window/tab.",
+                            style: Theme.of(ctx).textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: 8),
+                          FilledButton.icon(
+                            onPressed: () async {
+                              if (repo.clientId == null || repo.clientId!.isEmpty) {
+                                setState(() {
+                                  webErrorMessage = "Client ID is empty. Re-opening dialog might help.";
+                                });
+                                return;
+                              }
+                              final redirectUri = 'http://localhost';
+
+                              final authUrl = 'https://accounts.google.com/o/oauth2/v2/auth'
+                                  '?client_id=${repo.clientId}'
+                                  '&redirect_uri=${Uri.encodeComponent(redirectUri)}'
+                                  '&response_type=code'
+                                  '&scope=${Uri.encodeComponent('https://www.googleapis.com/auth/calendar.readonly')}'
+                                  '&access_type=offline'
+                                  '&prompt=consent';
+                              final uri = Uri.parse(authUrl);
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                              } else {
+                                setState(() {
+                                  webErrorMessage = "Could not open authorization page automatically. Please visit: $authUrl";
+                                });
+                              }
+                            },
+                            icon: const Icon(Icons.open_in_new),
+                            label: const Text("Open Google Consent Page"),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            "2. The consent screen will redirect to a broken page starting with 'http://localhost${Uri.base.port == 0 || Uri.base.port == 80 || Uri.base.port == 443 ? "" : ":${Uri.base.port}"}/'. This is normal. Copy that entire broken URL from your browser's address bar, paste it below, and click 'Link Account'.",
+                            style: Theme.of(ctx).textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: webUrlController,
+                            decoration: InputDecoration(
+                              labelText: "Paste Redirection URL",
+                              hintText: "http://localhost/?code=...",
+                              errorText: webErrorMessage,
+                              border: const OutlineInputBorder(),
+                            ),
+                            onChanged: (_) {
+                              if (webErrorMessage != null) {
+                                setState(() {
+                                  webErrorMessage = null;
+                                });
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          FilledButton.icon(
+                            onPressed: () async {
+                              final input = webUrlController.text.trim();
+                              if (input.isEmpty) {
+                                setState(() {
+                                  webErrorMessage = "Please paste the redirect URL first.";
+                                });
+                                return;
+                              }
+
+                              final code = extractCode(input);
+                              if (code == null) {
+                                setState(() {
+                                  webErrorMessage = "Could not find a valid code in the pasted text.";
+                                });
+                                return;
+                              }
+
+                              setState(() {
+                                isWebLoading = true;
+                                webErrorMessage = null;
+                              });
+
+                              try {
+                                final resultFuture = backStream
+                                    .where((s) => s is BackAppWebSocketResultReceived)
+                                    .cast<BackAppWebSocketResultReceived>()
+                                    .firstWhere((s) => s.result.errorCode == backmsg.ErrorCode.ADD_TOKEN)
+                                    .timeout(const Duration(seconds: 15));
+
+                                appBloc.add(
+                                  AppWebSocketRequestGoogleToken(
+                                    code: code,
+                                    adminPassword: GetIt.I<WebSocketService>().password
+                                  ),
+                                );
+
+                                final resultState = await resultFuture;
+                                if (resultState.result.success) {
+                                  await repo.ensureTokenPresent(
+                                    appBloc: appBloc,
+                                    backStream: backStream,
+                                    force: true,
+                                  );
+
+                                  if (repo.hasToken) {
+                                    final fetched = await repo.fetchCalendars();
+                                    calendars = fetched;
+                                    for (final id in existingIds) {
+                                      final hasExisting = calendars.any((c) => c.id == id);
+                                      if (!hasExisting && id.isNotEmpty && id != 'primary') {
+                                        calendars.insert(0, GoogleCalendarEntry(id: id, summary: id));
+                                      }
+                                    }
+                                    connected.value = true;
+                                  } else {
+                                    setState(() {
+                                      webErrorMessage = "Auth code accepted, but token could not be verified.";
+                                    });
+                                  }
+                                } else {
+                                  setState(() {
+                                    webErrorMessage = resultState.result.errorMessage ?? "Failed to add token.";
+                                  });
+                                }
+                              } catch (e) {
+                                setState(() {
+                                  webErrorMessage = "Failed to communicate with backend: $e";
+                                });
+                              } finally {
+                                setState(() {
+                                  isWebLoading = false;
+                                });
+                              }
+                            },
+                            icon: const Icon(Icons.link),
+                            label: const Text("Link Account"),
+                          ),
+                        ],
+                      );
+                    },
+                  )
+                else
+                  FilledButton.icon(
+                    onPressed: () async {
+                      appBloc.add(
+                        AppWebSocketSendSimpleCommandRequested(
+                          commandType: appmsg.AppSimpleCommandType.GET_GOOGLE_SECRET,
+                        ),
+                      );
+
+                      if (repo.clientId == null || repo.clientId!.isEmpty) {
+                        await Future.delayed(const Duration(milliseconds: 300));
+                      }
+
+                      if (repo.clientId == null || repo.clientId!.isEmpty) {
+                        if (!ctx.mounted) return;
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          const SnackBar(
+                              content: Text("Google credentials not configured on backend.")),
+                        );
+                        return;
+                      }
+
+                      final headers = await repo.ensureAuthorizationHeaders(
+                        scopes: const ['https://www.googleapis.com/auth/calendar.readonly'],
+                        fromUserGesture: true,
+                      );
+
+                      if (headers != null) {
+                        repo.sendToBackend(appBloc: appBloc);
+                        calendars = await repo.fetchCalendars();
+                        // Ensure all existing IDs are in the list (or at least known)
+                        for (final id in existingIds) {
+                          final hasExisting = calendars.any((c) => c.id == id);
+                          if (!hasExisting && id.isNotEmpty && id != 'primary') {
+                            calendars.insert(0, GoogleCalendarEntry(id: id, summary: id));
+                          }
+                        }
+                        connected.value = true;
+                      }
+                    },
+                    icon: const Icon(Icons.login),
+                    label: Text(loc.adminTokenAdd),
+                  ),
                 const SizedBox(height: 16),
               ],
 
@@ -259,6 +471,7 @@ Future<List<ViewConfigProperty>?> promptGoogleCalendarProperties(
     },
   );
 
+  webUrlController.dispose();
   if (values == null) return null;
 
   final List<String> selectedIds =

@@ -105,3 +105,10 @@ class BackAppWebSocketDashboardSynced extends BackAppWebSocketState {
   @override
   List<Object?> get props => [backendId];
 }
+
+class BackAppWebSocketVerificationCodeReceived extends BackAppWebSocketState {
+  final backmsg.VerificationCodeT code;
+  BackAppWebSocketVerificationCodeReceived(this.code);
+  @override
+  List<Object?> get props => [code];
+}

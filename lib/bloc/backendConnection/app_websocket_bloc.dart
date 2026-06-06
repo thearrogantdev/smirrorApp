@@ -37,6 +37,7 @@ class AppWebSocketBloc extends Bloc<AppWebSocketEvent, AppWebSocketState> {
     on<AppWebSocketSendViewRequest>(_onSendViewCommand);
     on<AppWebSocketSendToken>(_onSendToken);
     on<AppWebSocketAddTokenToUser>(_onAddTokenToUser);
+    on<AppWebSocketRequestGoogleToken>(_onRequestGoogleToken);
     on<AppWebSocketGetToken>(_onGetToken);
     on<AppWebSocketRequestLogs>(_onRequestLogs);
     on<AppWebSocketSendDashboardRequest>(_onSendDashboard);
@@ -374,6 +375,25 @@ class AppWebSocketBloc extends Bloc<AppWebSocketEvent, AppWebSocketState> {
 
     final message = appmsg.AppBackMessageT(
       payloadType: appmsg.AppBackPayloadTypeId.AddToken,
+      payload: add,
+    );
+
+    builder.finish(message.pack(builder));
+    _websocketService.send(builder.buffer);
+  }
+
+  void _onRequestGoogleToken(
+    AppWebSocketRequestGoogleToken event,
+    Emitter<AppWebSocketState> emit,
+  ) {
+    final builder = fb.Builder(initialSize: 256);
+    final add = appmsg.RequestGoogleTokenT(
+      code: event.code,
+      userPassword: event.adminPassword,
+    );
+
+    final message = appmsg.AppBackMessageT(
+      payloadType: appmsg.AppBackPayloadTypeId.RequestGoogleToken,
       payload: add,
     );
 

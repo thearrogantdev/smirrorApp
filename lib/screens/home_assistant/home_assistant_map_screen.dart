@@ -270,7 +270,7 @@ class _HomeAssistantMapScreenState extends State<HomeAssistantMapScreen> {
     if (isRouteActive && !_didInitialSync) {
       _didInitialSync = true;
       Future.microtask(() {
-        if (mounted) {
+        if (context.mounted) {
           setState(() {
             _connectionCheckFuture = _performConnectionCheck();
           });

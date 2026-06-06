@@ -521,14 +521,11 @@ class WebSocketService {
             'pw': _password,
           },
         );
-        print('WS: Connecting to WebSocket at $wsUri');
         _channel = WebSocketChannel.connect(wsUri);
         try {
           await _channel!.ready.timeout(const Duration(seconds: 5));
-          print('WS: WebSocket connection established successfully.');
         } catch (webSocketError) {
           if (sessionId != _connectionSessionId) return;
-          print('WS: WebSocket handshake failed. Error: $webSocketError. Initiating HTTP diagnostics...');
 
           // Pre-flight check via HTTP to detect 401 or 426
           try {
@@ -539,13 +536,11 @@ class WebSocketService {
                 'pw': _password,
               },
             );
-            print('WS diagnostic: HTTP GET check starting...');
             final response = await http.get(
               httpUri,
               headers: _getWebHandshakeHeaders(_version.isEmpty ? '0.1' : _version),
             ).timeout(const Duration(seconds: 3));
-            print('WS diagnostic: HTTP GET check response: ${response.statusCode}');
-            
+
             if (sessionId != _connectionSessionId) return;
 
             if (response.statusCode == 401) {
@@ -622,7 +617,6 @@ class WebSocketService {
         _setStatus(WsStatus.disconnected);
         return;
       }
-      print('WS initial connect failed: $e');
 
       // The initial attempt failed. Set status to disconnected
       // so the UI knows immediately and can show the landing page.
@@ -682,14 +676,11 @@ class WebSocketService {
               'pw': _password,
             },
           );
-          print('WS background retry: Connecting to WebSocket at $wsUri');
           _channel = WebSocketChannel.connect(wsUri);
           try {
             await _channel!.ready.timeout(const Duration(seconds: 5));
-            print('WS background retry: WebSocket connection established successfully.');
           } catch (webSocketError) {
             if (sessionId != _connectionSessionId) return;
-            print('WS background retry: WebSocket handshake failed. Error: $webSocketError. Initiating HTTP diagnostics...');
 
             // Pre-flight check via HTTP to detect 401 or 426
             try {
@@ -700,13 +691,11 @@ class WebSocketService {
                   'pw': _password,
                 },
               );
-              print('WS background retry diagnostic: HTTP GET check starting...');
               final response = await http.get(
                 httpUri,
                 headers: _getWebHandshakeHeaders(_version.isEmpty ? '0.1' : _version),
               ).timeout(const Duration(seconds: 3));
-              print('WS background retry diagnostic: HTTP GET check response: ${response.statusCode}');
-              
+
               if (sessionId != _connectionSessionId) return;
 
               if (response.statusCode == 401) {
@@ -783,7 +772,6 @@ class WebSocketService {
           _setStatus(WsStatus.disconnected);
           return;
         }
-        print('WS background retry failed: $e');
 
         final waitEnd = DateTime.now().add(Duration(seconds: _retryDelay));
         final currentDeviceId = _activeDevice?.id;
@@ -882,10 +870,8 @@ class WebSocketService {
   }
 
   void _listen() {
-    print('WS listening to channel stream...');
     _subscription = _channel!.stream.listen(
       (data) {
-        print('WS raw data received. Type: ${data.runtimeType}, Size/Length: ${data is List<int> ? data.length : (data is ByteBuffer ? data.lengthInBytes : "unknown")}');
         if (data is List<int>) {
           _incoming.add(data);
         } else if (data is ByteBuffer) {
@@ -894,16 +880,13 @@ class WebSocketService {
           final buffer = data.buffer;
           _incoming.add(buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
         } else if (data is String) {
-          print('WS string data (unexpected text frame): $data');
           _incoming.add(utf8.encode(data));
         }
       },
       onError: (err) {
-        print('WebSocket error: $err');
         _handleDisconnect();
       },
       onDone: () {
-        print('WebSocket channel onDone triggered.');
         _handleDisconnect();
       },
       cancelOnError: true,
@@ -911,7 +894,6 @@ class WebSocketService {
   }
 
   void _handleDisconnect() {
-    print('WS handling disconnect. Flags - isDisposed: $_isDisposed, authRejected: $_authRejected, upgradeRejected: $_upgradeRejected');
     _subscription?.cancel();
     _subscription = null;
     _channel = null;

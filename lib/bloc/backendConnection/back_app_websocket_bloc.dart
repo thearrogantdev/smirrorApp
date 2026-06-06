@@ -166,6 +166,22 @@ class BackAppWebSocketBloc extends Cubit<BackAppWebSocketState> {
           }
           break;
 
+        case backmsg.BackAppPayloadTypeId.GoogleSecretWeb:
+          final secret = rawMessage.payload as backmsg.GoogleSecretWeb;
+          final newId = secret.id ?? "";
+          if (newId.isNotEmpty) {
+            GetIt.I<GoogleTokenRepository>().setCredentials(
+              id: newId,
+              secret: secret.secret ?? "",
+            );
+          }
+          break;
+
+        case backmsg.BackAppPayloadTypeId.VerificationCode:
+          final code = rawMessage.payload as backmsg.VerificationCode;
+          emit(BackAppWebSocketVerificationCodeReceived(code.unpack()));
+          break;
+
 
         case backmsg.BackAppPayloadTypeId.viewStructure_View:
           final fbView = rawMessage.payload as vs.View;
