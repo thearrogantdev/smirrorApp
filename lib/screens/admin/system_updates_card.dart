@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:smirror_wire/generated/app_back_app_back_generated.dart' as appmsg;
 import 'package:smirror_app/l10n/app_localizations.dart';
 
 class SystemUpdatesCard extends StatelessWidget {
@@ -18,7 +17,7 @@ class SystemUpdatesCard extends StatelessWidget {
     required this.isUpdatingBackend,
     required this.isUpdatingWebapp,
     required this.onCheckForUpdates,
-    required this.onTriggerUpdate,
+    required this.onStartUpdate,
     required this.l10n,
   });
 
@@ -35,7 +34,7 @@ class SystemUpdatesCard extends StatelessWidget {
   final bool isUpdatingBackend;
   final bool isUpdatingWebapp;
   final VoidCallback onCheckForUpdates;
-  final ValueChanged<appmsg.AppSimpleCommandType> onTriggerUpdate;
+  final VoidCallback onStartUpdate;
   final AppLocalizations l10n;
 
   Widget _buildUpdateStatusRow({
@@ -44,7 +43,6 @@ class SystemUpdatesCard extends StatelessWidget {
     required String currentVersion,
     required String newVersion,
     required bool isUpdating,
-    required appmsg.AppSimpleCommandType commandType,
   }) {
     final theme = Theme.of(context);
     final hasUpdate = newVersion.isNotEmpty;
@@ -145,34 +143,18 @@ class SystemUpdatesCard extends StatelessWidget {
               ],
             ),
           ),
-          if (hasUpdate)
-            isUpdating
-                ? SizedBox(
-                    width: 44,
-                    height: 44,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
-                      ),
-                    ),
-                  )
-                : FilledButton.icon(
-                    onPressed: () => onTriggerUpdate(commandType),
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    icon: const Icon(Icons.download_rounded, size: 18),
-                    label: Text(l10n.update),
-                  ),
+          if (hasUpdate && isUpdating)
+            SizedBox(
+              width: 44,
+              height: 44,
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -265,7 +247,6 @@ class SystemUpdatesCard extends StatelessWidget {
                 currentVersion: currentFrontendVersion,
                 newVersion: availableFrontendVersion,
                 isUpdating: isUpdatingFrontend,
-                commandType: appmsg.AppSimpleCommandType.UPDATE_FRONTEND,
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 8.0),
@@ -277,7 +258,6 @@ class SystemUpdatesCard extends StatelessWidget {
                 currentVersion: currentBackendVersion,
                 newVersion: availableBackendVersion,
                 isUpdating: isUpdatingBackend,
-                commandType: appmsg.AppSimpleCommandType.UPDATE_BACKEND,
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 8.0),
@@ -289,7 +269,6 @@ class SystemUpdatesCard extends StatelessWidget {
                 currentVersion: currentWebappVersion,
                 newVersion: availableWebappVersion,
                 isUpdating: isUpdatingWebapp,
-                commandType: appmsg.AppSimpleCommandType.UPDATE_WEBAPP,
               ),
               if (!checked || noNewUpdates) ...[
                 const SizedBox(height: 16),
@@ -321,6 +300,81 @@ class SystemUpdatesCard extends StatelessWidget {
                         ),
                       ),
                     ],
+                  ),
+                ),
+              ],
+              if (checked &&
+                  (availableFrontendVersion.isNotEmpty ||
+                      availableBackendVersion.isNotEmpty ||
+                      availableWebappVersion.isNotEmpty)) ...[
+                const SizedBox(height: 24),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: (isUpdatingFrontend || isUpdatingBackend || isUpdatingWebapp)
+                        ? null
+                        : const LinearGradient(
+                            colors: [Color(0xFF6B4EFF), Color(0xFF8B75FF)],
+                          ),
+                    color: (isUpdatingFrontend || isUpdatingBackend || isUpdatingWebapp)
+                        ? (isDark ? Colors.white12 : Colors.black12)
+                        : null,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: (isUpdatingFrontend || isUpdatingBackend || isUpdatingWebapp)
+                        ? null
+                        : [
+                            BoxShadow(
+                              color: const Color(0xFF6B4EFF).withValues(alpha: 0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                  ),
+                  child: ElevatedButton(
+                    onPressed: (isUpdatingFrontend || isUpdatingBackend || isUpdatingWebapp)
+                        ? null
+                        : onStartUpdate,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        (isUpdatingFrontend || isUpdatingBackend || isUpdatingWebapp)
+                            ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    isDark ? Colors.white60 : Colors.black54,
+                                  ),
+                                ),
+                              )
+                            : const Icon(
+                                Icons.download_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                        const SizedBox(width: 10),
+                        Text(
+                          (isUpdatingFrontend || isUpdatingBackend || isUpdatingWebapp)
+                              ? "Updating System..."
+                              : l10n.updateAll,
+                          style: TextStyle(
+                            color: (isUpdatingFrontend || isUpdatingBackend || isUpdatingWebapp)
+                                ? (isDark ? Colors.white38 : Colors.black38)
+                                : Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],

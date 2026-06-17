@@ -255,7 +255,12 @@ class _DeviceConnectionDialogState extends State<DeviceConnectionDialog> {
                           await showLoginDialog(context);
                         }
                         if (context.mounted) {
-                          Navigator.of(context).pop();
+                          final route = ModalRoute.of(context);
+                          if (route != null) {
+                            Navigator.of(context).removeRoute(route);
+                          } else {
+                            Navigator.of(context).pop();
+                          }
                         }
                       }
                     : null,

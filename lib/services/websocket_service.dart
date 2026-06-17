@@ -93,8 +93,6 @@ class WebSocketService {
 
 
 
-  final _guestLoginFallbackController = StreamController<void>.broadcast();
-  Stream<void> get guestLoginFallback$ => _guestLoginFallbackController.stream;
 
   Stream<List<int>> get stream => _incoming.stream;
   Stream<WsStatus> get status$ => _status.stream;
@@ -428,6 +426,20 @@ class WebSocketService {
     _authRejected = false;
     _upgradeRejected = false;
 
+    _closeCurrentConnection();
+
+    _setStatus(WsStatus.disconnected);
+
+    _userService.changeUser(null);
+  }
+
+  void _closeCurrentConnection() {
+    if (_subscription != null) {
+      try {
+        unawaited(_subscription!.cancel());
+      } catch (_) {}
+      _subscription = null;
+    }
     if (_channel != null) {
       final oldChannel = _channel!;
       _channel = null;
@@ -435,10 +447,6 @@ class WebSocketService {
         unawaited(oldChannel.sink.close());
       } catch (_) {}
     }
-
-    _setStatus(WsStatus.disconnected);
-
-    _userService.changeUser(null);
   }
 
 
@@ -809,13 +817,7 @@ class WebSocketService {
     _upgradeRejected = false;
 
     // Force close any existing socket so headers are used next time (fire-and-forget)
-    if (_channel != null) {
-      final oldChannel = _channel!;
-      _channel = null;
-      try {
-        unawaited(oldChannel.sink.close());
-      } catch (_) {}
-    }
+    _closeCurrentConnection();
 
     // Prepare a fresh ready gate for this attempt
     _readyCompleter ??= Completer<void>();
@@ -848,13 +850,7 @@ class WebSocketService {
     _upgradeRejected = false;
 
     // Close the old connection aggressively (fire-and-forget)
-    if (_channel != null) {
-      final oldChannel = _channel!;
-      _channel = null;
-      try {
-        unawaited(oldChannel.sink.close());
-      } catch (_) {}
-    }
+    _closeCurrentConnection();
 
     // Prepare a new ready gate if needed
     _readyCompleter ??= Completer<void>();
@@ -955,6 +951,5 @@ class WebSocketService {
     await _incoming.close();
     await _status.close();
     await _upgradeRequired.close();
-    await _guestLoginFallbackController.close();
   }
 }

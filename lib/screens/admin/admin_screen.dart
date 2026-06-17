@@ -1,6 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/services.dart';
 
 import 'package:auto_route/auto_route.dart';
+import 'toml_download_helper.dart';
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -45,9 +49,11 @@ class _AdminScreenState extends State<AdminScreen> {
   bool _isSubmitting = false;
   bool _isCheckingForUpdates = false;
   bool _isUploadingTomlConfig = false;
+  bool _isDownloadingTomlConfig = false;
   bool _isUpdatingFrontend = false;
   bool _isUpdatingBackend = false;
   bool _isUpdatingWebapp = false;
+  bool _isChainUpdating = false;
   String _currentFrontendVersion = "";
   String _currentBackendVersion = "";
   String _currentWebappVersion = "";
@@ -206,6 +212,33 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
+  void _startChainedUpdate() {
+    setState(() {
+      _isChainUpdating = true;
+    });
+    _runNextChainStep();
+  }
+
+  void _runNextChainStep() {
+    if (!_isChainUpdating) return;
+
+    final frontendVersion = _normalizeVersion(_availableUpdate?.versionFrontend);
+    final webappVersion = _normalizeVersion(_availableUpdate?.versionWebapp);
+    final backendVersion = _normalizeVersion(_availableUpdate?.versionBackend);
+
+    if (frontendVersion.isNotEmpty) {
+      _triggerUpdate(appmsg.AppSimpleCommandType.UPDATE_FRONTEND);
+    } else if (webappVersion.isNotEmpty) {
+      _triggerUpdate(appmsg.AppSimpleCommandType.UPDATE_WEBAPP);
+    } else if (backendVersion.isNotEmpty) {
+      _triggerUpdate(appmsg.AppSimpleCommandType.UPDATE_BACKEND);
+    } else {
+      setState(() {
+        _isChainUpdating = false;
+      });
+    }
+  }
+
   void _showAdminSnackBar(String message, {bool isSuccess = false}) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -255,6 +288,50 @@ class _AdminScreenState extends State<AdminScreen> {
       AppWebSocketUploadConfig(config: content),
     );
     setState(() => _isUploadingTomlConfig = true);
+  }
+
+  void _downloadTomlConfig() {
+    context.read<AppWebSocketBloc>().add(
+      AppWebSocketSendSimpleCommandRequested(
+        commandType: appmsg.AppSimpleCommandType.GET_TOML_CONFIG,
+      ),
+    );
+    setState(() => _isDownloadingTomlConfig = true);
+  }
+
+  Future<void> _handleDownloadedToml(String content) async {
+    final l10n = AppLocalizations.of(context)!;
+
+    // Fallback 1: Copy to clipboard (works everywhere)
+    try {
+      await Clipboard.setData(ClipboardData(text: content));
+    } catch (_) {}
+
+    if (kIsWeb) {
+      try {
+        triggerWebDownload(content, 'smirror.toml');
+        _showAdminSnackBar(l10n.adminTomlDownloadSuccess, isSuccess: true);
+      } catch (e) {
+        _showAdminSnackBar("Configuration copied to clipboard.", isSuccess: true);
+      }
+    } else {
+      try {
+        String? outputFile = await FilePicker.saveFile(
+          dialogTitle: 'Save TOML Config:',
+          fileName: 'smirror.toml',
+          bytes: Uint8List.fromList(utf8.encode(content)),
+        );
+        if (outputFile != null) {
+          final file = File(outputFile);
+          await file.writeAsString(content);
+          _showAdminSnackBar(l10n.adminTomlDownloadSuccess, isSuccess: true);
+        } else {
+          _showAdminSnackBar("Configuration copied to clipboard.", isSuccess: true);
+        }
+      } catch (e) {
+        _showAdminSnackBar("Configuration copied to clipboard.", isSuccess: true);
+      }
+    }
   }
 
   Future<void> _showRestartDialog() async {
@@ -468,6 +545,9 @@ class _AdminScreenState extends State<AdminScreen> {
                 commandType: appmsg.AppSimpleCommandType.GET_ADMIN_INFO,
               ),
             );
+            if (_isChainUpdating) {
+              _runNextChainStep();
+            }
           } else if (state.result.errorCode ==
               backmsg.ErrorCode.BACKEND_UPDATED) {
             setState(() {
@@ -486,6 +566,9 @@ class _AdminScreenState extends State<AdminScreen> {
                 commandType: appmsg.AppSimpleCommandType.GET_ADMIN_INFO,
               ),
             );
+            if (_isChainUpdating) {
+              _runNextChainStep();
+            }
           } else if (state.result.errorCode ==
               backmsg.ErrorCode.WEBAPP_UPDATED) {
             setState(() {
@@ -504,12 +587,16 @@ class _AdminScreenState extends State<AdminScreen> {
                 commandType: appmsg.AppSimpleCommandType.GET_ADMIN_INFO,
               ),
             );
+            if (_isChainUpdating) {
+              _runNextChainStep();
+            }
           } else if (state.result.errorCode ==
               backmsg.ErrorCode.UPDATED_FAILED) {
             setState(() {
               _isUpdatingFrontend = false;
               _isUpdatingBackend = false;
               _isUpdatingWebapp = false;
+              _isChainUpdating = false;
             });
             _showAdminSnackBar(
               state.result.errorMessage?.isNotEmpty == true
@@ -580,6 +667,19 @@ class _AdminScreenState extends State<AdminScreen> {
               );
             }
           }
+          if (_isDownloadingTomlConfig && !state.result.success) {
+            setState(() => _isDownloadingTomlConfig = false);
+            _showAdminSnackBar(
+              state.result.errorMessage?.isNotEmpty == true
+                  ? state.result.errorMessage!
+                  : l10n.errorConfigError,
+            );
+          }
+        }
+
+        if (state is BackAppWebSocketGotTomlConfig) {
+          setState(() => _isDownloadingTomlConfig = false);
+          _handleDownloadedToml(state.tomlConfig.config ?? '');
         }
       },
       child: Container(
@@ -662,9 +762,9 @@ class _AdminScreenState extends State<AdminScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.tune_rounded, size: 18),
+                            const Icon(Icons.people_outline_rounded, size: 18),
                             const SizedBox(width: 8),
-                            Text(l10n.adminDeviceSettingsTitle.split(' ').first),
+                            Text(l10n.adminUsersTitle.split(' ').first),
                           ],
                         ),
                       ),
@@ -673,9 +773,9 @@ class _AdminScreenState extends State<AdminScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.people_outline_rounded, size: 18),
+                            const Icon(Icons.tune_rounded, size: 18),
                             const SizedBox(width: 8),
-                            Text(l10n.adminUsersTitle.split(' ').first),
+                            Text(l10n.adminDeviceSettingsTitle.split(' ').first),
                           ],
                         ),
                       ),
@@ -697,8 +797,8 @@ class _AdminScreenState extends State<AdminScreen> {
             ),
             body: TabBarView(
               children: [
-                _buildGeneralTab(l10n, isDark),
                 _buildUsersTab(l10n, isDark),
+                _buildGeneralTab(l10n, isDark),
                 _buildSystemTab(l10n, isDark, frontendVersion, backendVersion, webappVersion),
               ],
             ),
@@ -804,10 +904,12 @@ class _AdminScreenState extends State<AdminScreen> {
               const SizedBox(height: 24),
               TomlUploadCard(
                 isUploading: _isUploadingTomlConfig,
+                isDownloading: _isDownloadingTomlConfig,
                 selectedFileName: _selectedTomlFileName,
                 selectedContent: _selectedTomlContent,
                 onPickFile: _pickTomlFile,
                 onUpload: _uploadTomlConfig,
+                onDownload: _downloadTomlConfig,
                 l10n: l10n,
               ),
             ],
@@ -959,7 +1061,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 isUpdatingBackend: _isUpdatingBackend,
                 isUpdatingWebapp: _isUpdatingWebapp,
                 onCheckForUpdates: _checkForUpdates,
-                onTriggerUpdate: _triggerUpdate,
+                onStartUpdate: _startChainedUpdate,
                 l10n: l10n,
               ),
               const SizedBox(height: 24),

@@ -88,7 +88,7 @@ class NavigationConfig {
       ),
       NavItem(
         icon: Icons.tune,
-        label: (l) => l.guestView,
+        label: (l) => l.navViewLayout,
         route: const ViewConfigRoute(),
       ),
       NavItem(

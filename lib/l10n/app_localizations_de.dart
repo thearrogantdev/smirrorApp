@@ -21,9 +21,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navViewLayout => 'View-Layout';
 
   @override
-  String get guestView => 'guest-view';
-
-  @override
   String get navHaDashboard => 'HA-Dashboard';
 
   @override
@@ -75,6 +72,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get themeMode => 'Designmodus';
+
+  @override
+  String get homeActivateGuest => 'Gast Modus';
 
   @override
   String get language => 'Sprache';
@@ -555,7 +555,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get adminAutoSwitchTooltip =>
-      'Wechselt Benutzer automatisch per FaceID, andernfalls wird das Gast-Konto verwendet. Nur mit aktiver Kamera empfohlen. Kann auch benutzt werden zum automatischen Abmelden.';
+      'Wechselt Benutzer automatisch per FaceID. Nur mit aktiver Kamera empfohlen. Kann auch benutzt werden zum automatischen Abmelden.';
 
   @override
   String get adminApplySettings => 'Einstellungen übernehmen';
@@ -623,6 +623,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String adminTomlUploadErrorWithMessage(String message) {
     return 'Die TOML-Konfiguration ist ungültig: $message';
   }
+
+  @override
+  String get adminTomlDownloadButton => 'Konfiguration herunterladen';
+
+  @override
+  String get adminTomlDownloadSuccess =>
+      'Konfiguration erfolgreich heruntergeladen.';
 
   @override
   String get adminTomlRestartTitle => 'smirror neu starten?';
@@ -754,16 +761,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminGoogleApplyLocal => 'Anmeldedaten lokal anwenden';
 
   @override
-  String get adminDeleteProtectedGuest =>
-      'Das Gastkonto kann nicht gelöscht werden.';
-
-  @override
   String get adminDeleteProtectedAdmin =>
       'Das Adminkonto kann nicht gelöscht werden.';
-
-  @override
-  String get adminRightsProtectedGuest =>
-      'Das Gastkonto kann aus Sicherheitsgründen keine Rechte erhalten.';
 
   @override
   String get adminRightsProtectedAdmin =>
@@ -799,7 +798,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get biometricsTrainFinger => 'Finger trainieren';
 
   @override
-  String get biometricsFaceTrainingStart => 'Starte Gesichtstraining...';
+  String get biometricsFaceTrainingStart =>
+      'Der sMirror ist nun im Suchmodus. Bitte stellen Sie sich vor den sMirror.';
 
   @override
   String get biometricsFingerprintStart =>
@@ -954,9 +954,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get homeActivateUser => 'Benutzer aktivieren';
-
-  @override
-  String get homeActivateGuest => 'Gast aktivieren';
 
   @override
   String get homeNextTheme => 'Design umschalten';
@@ -1124,10 +1121,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get brightness => 'Helligkeit';
 
   @override
-  String get guestFallbackMessage =>
-      'Als Gast angemeldet. Ihre gespeicherten Zugangsdaten sind möglicherweise veraltet oder das Passwort wurde geändert.';
-
-  @override
   String get landingTitle => 'Gerät verbinden';
 
   @override
@@ -1209,4 +1202,16 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get logout => 'Abmelden';
+
+  @override
+  String get dashboardUploadSuccess => 'Dashboard erfolgreich hochgeladen.';
+
+  @override
+  String get dashboardUploadError => 'Fehler beim Hochladen des Dashboards.';
+
+  @override
+  String get viewUploadSuccess => 'Layout erfolgreich hochgeladen.';
+
+  @override
+  String get viewUploadError => 'Fehler beim Hochladen des Layouts.';
 }

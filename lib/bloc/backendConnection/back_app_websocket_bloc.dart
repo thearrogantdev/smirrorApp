@@ -166,17 +166,6 @@ class BackAppWebSocketBloc extends Cubit<BackAppWebSocketState> {
           }
           break;
 
-        case backmsg.BackAppPayloadTypeId.GoogleSecretWeb:
-          final secret = rawMessage.payload as backmsg.GoogleSecretWeb;
-          final newId = secret.id ?? "";
-          if (newId.isNotEmpty) {
-            GetIt.I<GoogleTokenRepository>().setCredentials(
-              id: newId,
-              secret: secret.secret ?? "",
-            );
-          }
-          break;
-
         case backmsg.BackAppPayloadTypeId.VerificationCode:
           final code = rawMessage.payload as backmsg.VerificationCode;
           emit(BackAppWebSocketVerificationCodeReceived(code.unpack()));
@@ -328,6 +317,10 @@ class BackAppWebSocketBloc extends Cubit<BackAppWebSocketState> {
           emit(BackAppWebSocketGotFrame(frame));
           break;
 
+        case backmsg.BackAppPayloadTypeId.TomlConfig:
+          final tomlConfig = (rawMessage.payload as backmsg.TomlConfig).unpack();
+          emit(BackAppWebSocketGotTomlConfig(tomlConfig));
+          break;
 
         default:
           emit(

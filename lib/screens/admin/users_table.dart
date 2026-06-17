@@ -23,7 +23,7 @@ class UsersTable extends StatelessWidget {
 
   static bool _isProtected(int userId) {
     final currentUserId = GetIt.I<UserService>().currentUser?.localUserId;
-    return userId == 1 || userId == currentUserId; // 1 is Guest, current is Admin
+    return userId == currentUserId; // current is Admin
   }
 
   // All permissions we want to show as columns
@@ -97,11 +97,7 @@ class UsersTable extends StatelessWidget {
                       final hasPermission = (user.rights & p.value) != 0;
                       return DataCell(
                         Tooltip(
-                          message: isProtected
-                              ? (user.userId == 1
-                                    ? l10n.adminRightsProtectedGuest
-                                    : l10n.adminRightsProtectedAdmin)
-                              : '',
+                          message: isProtected ? l10n.adminRightsProtectedAdmin : '',
                           child: Checkbox(
                             value: hasPermission,
                             onChanged: isProtected
@@ -142,7 +138,7 @@ class DeleteButton extends StatelessWidget {
 
   bool get _isProtected {
     final currentUserId = GetIt.I<UserService>().currentUser?.localUserId;
-    return user.userId == 1 || user.userId == currentUserId;
+    return user.userId == currentUserId;
   }
 
   Future<void> _confirmDelete(BuildContext context) async {
@@ -174,9 +170,7 @@ class DeleteButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (_isProtected) {
-      final label = user.userId == 1
-          ? l10n.adminDeleteProtectedGuest
-          : l10n.adminDeleteProtectedAdmin;
+      final label = l10n.adminDeleteProtectedAdmin;
 
       return Tooltip(
         message: label,

@@ -35,12 +35,9 @@ class MainScaffold extends StatefulWidget {
 class _MainScaffoldState extends State<MainScaffold> {
   final _session = GetIt.I<SessionContextService>();
   StreamSubscription<void>? _upgradeSub;
-  StreamSubscription<void>? _guestFallbackSub;
   StreamSubscription<WsStatus>? _statusSub;
   StreamSubscription<User?>? _userSub;
   bool _hasConnectedOnce = false;
-
-  late AppLocalizations _loc;
 
   @override
   void initState() {
@@ -48,9 +45,6 @@ class _MainScaffoldState extends State<MainScaffold> {
     final ws = GetIt.I<WebSocketService>();
     _upgradeSub = ws.upgradeRequired$.listen((_) {
       if (mounted) _showUpgradeDialog();
-    });
-    _guestFallbackSub = ws.guestLoginFallback$.listen((_) {
-      if (mounted) _showGuestFallbackMessage();
     });
 
     _statusSub = ws.status$.listen((status) {
@@ -78,7 +72,6 @@ class _MainScaffoldState extends State<MainScaffold> {
   @override
   void dispose() {
     _upgradeSub?.cancel();
-    _guestFallbackSub?.cancel();
     _statusSub?.cancel();
     _userSub?.cancel();
     super.dispose();
@@ -102,28 +95,9 @@ class _MainScaffoldState extends State<MainScaffold> {
     );
   }
 
-  void _showGuestFallbackMessage() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_loc.guestFallbackMessage),
-        backgroundColor: Colors.orange,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 10),
-        action: SnackBarAction(
-          label: _loc.close,
-          onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          },
-        ),
-      ),
-    );
-  }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _loc = AppLocalizations.of(context)!;
-  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -233,6 +207,20 @@ class _MainScaffoldState extends State<MainScaffold> {
         break;
       case backmsg.ErrorCode.UPDATED_FAILED:
         message = loc.errorUpdateFailed;
+        break;
+      case backmsg.ErrorCode.DASHBOARD_OK:
+        message = loc.dashboardUploadSuccess;
+        isSuccess = true;
+        break;
+      case backmsg.ErrorCode.DASHBOARD_ERROR:
+        message = loc.dashboardUploadError;
+        break;
+      case backmsg.ErrorCode.VIEW_OK:
+        message = loc.viewUploadSuccess;
+        isSuccess = true;
+        break;
+      case backmsg.ErrorCode.VIEW_ERROR:
+        message = loc.viewUploadError;
         break;
       default:
         break;

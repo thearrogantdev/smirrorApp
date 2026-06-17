@@ -91,7 +91,8 @@ Future<T?> showConfigDialog<T>({
                           // onSubmit may run async key/city validation and set field errors
                           final result = await onSubmit(values);
 
-                          if (result == null) {
+                          final isVoidOrNull = T == Null || T == (const _TypeLiteral<void>().type);
+                          if (result == null && !isVoidOrNull) {
                             // keep dialog open so inline errors remain visible
                             return;
                           }
@@ -122,3 +123,9 @@ Future<T?> showConfigDialog<T>({
     },
   );
 }
+
+class _TypeLiteral<T> {
+  const _TypeLiteral();
+  Type get type => T;
+}
+

@@ -235,7 +235,7 @@ class _TokensTableState extends State<TokensTable> {
                   children: [
                     Text('Assign to user:', style: theme.textTheme.bodySmall),
                     ...widget.users
-                        .where((u) => u.name != "admin") // current user is admin user
+                        .where((u) => u.name != "admin" && u.name != "guest" && u.userId != 1) // current user is admin user
                         .map((u) {
                       final usersTokens =
                           widget.userTokens[u.userId.toInt()] ?? [];

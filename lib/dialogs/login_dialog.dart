@@ -44,12 +44,20 @@ class _LoginDialogState extends State<LoginDialog> {
 
       if (!mounted) return;
 
+      if (result == LoginResult.success) {
+        final route = ModalRoute.of(context);
+        if (route != null) {
+          Navigator.of(context).removeRoute(route);
+        } else {
+          Navigator.of(context).pop();
+        }
+        return;
+      }
+
       setState(() {
         _isLoading = false;
         final loc = AppLocalizations.of(context)!;
-        if (result == LoginResult.success) {
-          Navigator.of(context).pop();
-        } else if (result == LoginResult.unauthorized) {
+        if (result == LoginResult.unauthorized) {
           _errorMessage = loc.errorInvalidCredentials;
         } else {
           _errorMessage = loc.errorConfigError;

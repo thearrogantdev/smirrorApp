@@ -112,3 +112,10 @@ class BackAppWebSocketVerificationCodeReceived extends BackAppWebSocketState {
   @override
   List<Object?> get props => [code];
 }
+
+class BackAppWebSocketGotTomlConfig extends BackAppWebSocketState {
+  final backmsg.TomlConfigT tomlConfig;
+  BackAppWebSocketGotTomlConfig(this.tomlConfig);
+  @override
+  List<Object?> get props => [tomlConfig];
+}

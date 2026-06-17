@@ -152,9 +152,9 @@ class _HomeAssistantMapScreenState extends State<HomeAssistantMapScreen> {
   void _pickBackground(BuildContext context, Dashboard currentDashboard) {
     final loc = AppLocalizations.of(context)!;
 
-    showConfigDialog<void>(
+    showConfigDialog<bool>(
       context: context,
-      title: loc.haRenameDashboardTitle, // Or a specific "Background" key
+      title: loc.haRenameDashboardTitle,
       initialValues: {
         'bg': [
           currentDashboard.backgroundImagePath != null &&
@@ -188,12 +188,21 @@ class _HomeAssistantMapScreenState extends State<HomeAssistantMapScreen> {
               : null;
 
           if (first != null) {
-            // 1. Update the local Dashboard object
+            // Update the local Dashboard object
             currentDashboard.backgroundImagePath = first.path;
             // Reset ID so that the AppWebSocketBloc knows it needs to be uploaded to the backend
             currentDashboard.backgroundImageId = 0;
 
-            // 2. Dispatch to Bloc to save in ObjectBox and update UI
+            try {
+              final bytes = await File(first.path).readAsBytes();
+              final decodedImage = await decodeImageFromList(bytes);
+              currentDashboard.width = decodedImage.width.toDouble();
+              currentDashboard.height = decodedImage.height.toDouble();
+            } catch (e) {
+              debugPrint("Failed to decode background image dimensions: $e");
+            }
+
+            // Dispatch to Bloc to save in ObjectBox and update UI
             if (context.mounted) {
               context.read<HABloc>().add(
                 UpdateDashboardEvent(currentDashboard),
@@ -201,7 +210,7 @@ class _HomeAssistantMapScreenState extends State<HomeAssistantMapScreen> {
             }
           }
         }
-        return;
+        return true;
       },
     );
   }
@@ -542,79 +551,47 @@ class _HomeAssistantMapScreenState extends State<HomeAssistantMapScreen> {
   void _showDashboardForm(BuildContext context, {Dashboard? existing}) {
     final loc = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: existing?.name ?? "");
-    bool isHorizontal = existing == null || existing.width >= existing.height;
 
     showDialog(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            title: Text(
-              existing == null ? loc.haNewDashboard : loc.haRenameDashboardTitle,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          existing == null ? loc.haNewDashboard : loc.haRenameDashboardTitle,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(hintText: loc.haDashboardNameField),
+              autofocus: true,
             ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: controller,
-                  decoration: InputDecoration(hintText: loc.haDashboardNameField),
-                  autofocus: true,
-                ),
-                if (existing == null) ...[
-                  const SizedBox(height: 16),
-                  RadioGroup<bool>(
-                    groupValue: isHorizontal,
-                    onChanged: (val) => setState(() => isHorizontal = val!),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: RadioListTile<bool>(
-                            contentPadding: EdgeInsets.zero,
-                            title: const Text("1920x1080"),
-                            value: true,
-                          ),
-                        ),
-                        Expanded(
-                          child: RadioListTile<bool>(
-                            contentPadding: EdgeInsets.zero,
-                            title: const Text("1080x1920"),
-                            value: false,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(loc.cancel),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (controller.text.trim().isEmpty) return;
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(loc.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (controller.text.trim().isEmpty) return;
 
-                  if (existing == null) {
-                    context.read<HABloc>().add(
+              if (existing == null) {
+                context.read<HABloc>().add(
                       AddDashboardEvent(
                         name: controller.text,
-                        width: isHorizontal ? 1920.0 : 1080.0,
-                        height: isHorizontal ? 1080.0 : 1920.0,
                       ),
                     );
-                  } else {
-                    existing.name = controller.text;
-                    context.read<HABloc>().add(UpdateDashboardEvent(existing));
-                  }
-                  Navigator.pop(ctx);
-                },
-                child: Text(loc.save),
-              ),
-            ],
-          );
-        }
+              } else {
+                existing.name = controller.text;
+                context.read<HABloc>().add(UpdateDashboardEvent(existing));
+              }
+              Navigator.pop(ctx);
+            },
+            child: Text(loc.save),
+          ),
+        ],
       ),
     );
   }

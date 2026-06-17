@@ -21,9 +21,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navViewLayout => 'View Layout';
 
   @override
-  String get guestView => 'guest-view';
-
-  @override
   String get navHaDashboard => 'HA Dashboard';
 
   @override
@@ -75,6 +72,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get themeMode => 'Theme Mode';
+
+  @override
+  String get homeActivateGuest => 'Guest Mode';
 
   @override
   String get language => 'Language';
@@ -547,7 +547,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminAutoSwitchTooltip =>
-      'Automatically switches users via FaceID, otherwise defaults to Guest. Recommended only with an active camera. Can also be used to auto-logout.';
+      'Automatically switches users via FaceID. Recommended only with an active camera. Can also be used to auto-logout.';
 
   @override
   String get adminApplySettings => 'Apply Settings';
@@ -614,6 +614,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String adminTomlUploadErrorWithMessage(String message) {
     return 'The TOML configuration is invalid: $message';
   }
+
+  @override
+  String get adminTomlDownloadButton => 'Download config';
+
+  @override
+  String get adminTomlDownloadSuccess =>
+      'Configuration downloaded successfully.';
 
   @override
   String get adminTomlRestartTitle => 'Restart smirror?';
@@ -744,16 +751,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminGoogleApplyLocal => 'Apply Credentials Locally';
 
   @override
-  String get adminDeleteProtectedGuest =>
-      'The guest account cannot be deleted.';
-
-  @override
   String get adminDeleteProtectedAdmin =>
       'The admin account cannot be deleted.';
-
-  @override
-  String get adminRightsProtectedGuest =>
-      'The guest account cannot have any rights for safety reasons.';
 
   @override
   String get adminRightsProtectedAdmin =>
@@ -788,7 +787,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get biometricsTrainFinger => 'Train Finger';
 
   @override
-  String get biometricsFaceTrainingStart => 'Starting Face Training...';
+  String get biometricsFaceTrainingStart =>
+      'sMirror is now in search mode. Please move in front of the sMirror.';
 
   @override
   String get biometricsFingerprintStart =>
@@ -941,9 +941,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeActivateUser => 'Activate User';
-
-  @override
-  String get homeActivateGuest => 'Activate Guest';
 
   @override
   String get homeNextTheme => 'Toggle Theme';
@@ -1111,10 +1108,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get brightness => 'Brightness';
 
   @override
-  String get guestFallbackMessage =>
-      'Logged in as Guest. Your stored credentials might be outdated or the password was changed.';
-
-  @override
   String get landingTitle => 'Connect your device';
 
   @override
@@ -1194,4 +1187,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get logout => 'Logout';
+
+  @override
+  String get dashboardUploadSuccess => 'Dashboard uploaded successfully.';
+
+  @override
+  String get dashboardUploadError => 'Failed to upload dashboard.';
+
+  @override
+  String get viewUploadSuccess => 'View layout uploaded successfully.';
+
+  @override
+  String get viewUploadError => 'Failed to upload view layout.';
 }

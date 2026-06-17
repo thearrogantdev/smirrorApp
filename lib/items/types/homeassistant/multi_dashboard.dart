@@ -165,8 +165,7 @@ class HAMultiDashboard extends WidgetTypeDefinition {
                               constraints: const BoxConstraints(maxHeight: 350),
                               child: ReorderableListView(
                                 shrinkWrap: true,
-                                onReorder: (oldIdx, newIdx) {
-                                  if (newIdx > oldIdx) newIdx -= 1;
+                                onReorderItem: (oldIdx, newIdx) {
                                   final newList = List<int>.from(currentIds);
                                   final item = newList.removeAt(oldIdx);
                                   newList.insert(newIdx, item);

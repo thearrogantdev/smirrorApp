@@ -5,18 +5,22 @@ class TomlUploadCard extends StatelessWidget {
   const TomlUploadCard({
     super.key,
     required this.isUploading,
+    required this.isDownloading,
     required this.selectedFileName,
     required this.selectedContent,
     required this.onPickFile,
     required this.onUpload,
+    required this.onDownload,
     required this.l10n,
   });
 
   final bool isUploading;
+  final bool isDownloading;
   final String? selectedFileName;
   final String? selectedContent;
   final VoidCallback onPickFile;
   final VoidCallback onUpload;
+  final VoidCallback onDownload;
   final AppLocalizations l10n;
 
   @override
@@ -181,8 +185,30 @@ class TomlUploadCard extends StatelessWidget {
 
               // Action Buttons
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  OutlinedButton.icon(
+                    onPressed: isDownloading || isUploading ? null : onDownload,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 14,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    icon: isDownloading
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Icon(Icons.cloud_download_rounded, size: 18),
+                    label: Text(l10n.adminTomlDownloadButton),
+                  ),
+                  const Spacer(),
                   if (hasFile)
                     TextButton.icon(
                       onPressed: isUploading ? null : onPickFile,

@@ -122,12 +122,6 @@ abstract class AppLocalizations {
   /// **'View Layout'**
   String get navViewLayout;
 
-  /// No description provided for @guestView.
-  ///
-  /// In en, this message translates to:
-  /// **'guest-view'**
-  String get guestView;
-
   /// No description provided for @navHaDashboard.
   ///
   /// In en, this message translates to:
@@ -229,6 +223,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Theme Mode'**
   String get themeMode;
+
+  /// No description provided for @homeActivateGuest.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest Mode'**
+  String get homeActivateGuest;
 
   /// No description provided for @language.
   ///
@@ -1133,7 +1133,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminAutoSwitchTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Automatically switches users via FaceID, otherwise defaults to Guest. Recommended only with an active camera. Can also be used to auto-logout.'**
+  /// **'Automatically switches users via FaceID. Recommended only with an active camera. Can also be used to auto-logout.'**
   String get adminAutoSwitchTooltip;
 
   /// No description provided for @adminApplySettings.
@@ -1255,6 +1255,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The TOML configuration is invalid: {message}'**
   String adminTomlUploadErrorWithMessage(String message);
+
+  /// No description provided for @adminTomlDownloadButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Download config'**
+  String get adminTomlDownloadButton;
+
+  /// No description provided for @adminTomlDownloadSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Configuration downloaded successfully.'**
+  String get adminTomlDownloadSuccess;
 
   /// No description provided for @adminTomlRestartTitle.
   ///
@@ -1478,23 +1490,11 @@ abstract class AppLocalizations {
   /// **'Apply Credentials Locally'**
   String get adminGoogleApplyLocal;
 
-  /// No description provided for @adminDeleteProtectedGuest.
-  ///
-  /// In en, this message translates to:
-  /// **'The guest account cannot be deleted.'**
-  String get adminDeleteProtectedGuest;
-
   /// No description provided for @adminDeleteProtectedAdmin.
   ///
   /// In en, this message translates to:
   /// **'The admin account cannot be deleted.'**
   String get adminDeleteProtectedAdmin;
-
-  /// No description provided for @adminRightsProtectedGuest.
-  ///
-  /// In en, this message translates to:
-  /// **'The guest account cannot have any rights for safety reasons.'**
-  String get adminRightsProtectedGuest;
 
   /// No description provided for @adminRightsProtectedAdmin.
   ///
@@ -1559,7 +1559,7 @@ abstract class AppLocalizations {
   /// No description provided for @biometricsFaceTrainingStart.
   ///
   /// In en, this message translates to:
-  /// **'Starting Face Training...'**
+  /// **'sMirror is now in search mode. Please move in front of the sMirror.'**
   String get biometricsFaceTrainingStart;
 
   /// No description provided for @biometricsFingerprintStart.
@@ -1843,12 +1843,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Activate User'**
   String get homeActivateUser;
-
-  /// No description provided for @homeActivateGuest.
-  ///
-  /// In en, this message translates to:
-  /// **'Activate Guest'**
-  String get homeActivateGuest;
 
   /// No description provided for @homeNextTheme.
   ///
@@ -2168,12 +2162,6 @@ abstract class AppLocalizations {
   /// **'Brightness'**
   String get brightness;
 
-  /// No description provided for @guestFallbackMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'Logged in as Guest. Your stored credentials might be outdated or the password was changed.'**
-  String get guestFallbackMessage;
-
   /// No description provided for @landingTitle.
   ///
   /// In en, this message translates to:
@@ -2317,6 +2305,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Logout'**
   String get logout;
+
+  /// No description provided for @dashboardUploadSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard uploaded successfully.'**
+  String get dashboardUploadSuccess;
+
+  /// No description provided for @dashboardUploadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to upload dashboard.'**
+  String get dashboardUploadError;
+
+  /// No description provided for @viewUploadSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'View layout uploaded successfully.'**
+  String get viewUploadSuccess;
+
+  /// No description provided for @viewUploadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to upload view layout.'**
+  String get viewUploadError;
 }
 
 class _AppLocalizationsDelegate
