@@ -1,10 +1,8 @@
 import 'dart:async';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-
 import 'package:get_it/get_it.dart';
 import 'package:smirror_app/bloc/session_context_cubit.dart';
 import 'package:smirror_app/services/session_context_service.dart';
@@ -16,9 +14,13 @@ import 'package:smirror_app/models/device_connection.dart';
 import 'package:smirror_app/l10n/app_localizations.dart';
 import 'change_password_dialog.dart';
 import 'package:smirror_wire/generated/back_app_back_app_generated.dart' as backmsg;
+import 'package:smirror_wire/generated/app_back_app_back_generated.dart' as appmsg;
 import 'package:smirror_app/bloc/backendConnection/back_app_websocket_bloc.dart';
 import 'package:smirror_app/bloc/backendConnection/back_app_websocket_state.dart';
+import 'package:smirror_app/bloc/backendConnection/app_websocket_bloc.dart';
+import 'package:smirror_app/bloc/backendConnection/app_websocket_event.dart';
 import 'package:smirror_app/dialogs/login_dialog.dart';
+import 'package:smirror_app/dialogs/initial_setup_dialog.dart';
 import 'package:smirror_app/screens/landing_screen.dart';
 
 import 'user_scaffold.dart';
@@ -38,6 +40,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   StreamSubscription<WsStatus>? _statusSub;
   StreamSubscription<User?>? _userSub;
   bool _hasConnectedOnce = false;
+  bool _setupDialogShown = false;
 
   @override
   void initState() {
@@ -61,6 +64,9 @@ class _MainScaffoldState extends State<MainScaffold> {
         setState(() {
           _hasConnectedOnce = false;
         });
+      }
+      if (user?.username != 'admin') {
+        _setupDialogShown = false;
       }
     });
 
@@ -95,10 +101,6 @@ class _MainScaffoldState extends State<MainScaffold> {
     );
   }
 
-
-
-
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SessionContextCubit, int>(
@@ -109,6 +111,39 @@ class _MainScaffoldState extends State<MainScaffold> {
               listener: (context, state) {
                 if (state is BackAppWebSocketResultReceived) {
                   _handleBackendResult(context, state.result);
+                }
+
+                if (state is BackAppWebSocketWelcomeReceived) {
+                  final deviceName = state.welcomeMessage.deviceName;
+                  final currentUsername =
+                      GetIt.I<UserService>().currentUser?.username;
+                  if (deviceName == 'default' && currentUsername == 'admin') {
+                    // Automatically request admin info to get settings (autoSwitch) and trigger the dialog
+                    context.read<AppWebSocketBloc>().add(
+                      AppWebSocketSendSimpleCommandRequested(
+                        commandType: appmsg.AppSimpleCommandType.GET_ADMIN_INFO,
+                      ),
+                    );
+                  }
+                }
+
+                if (state is BackAppWebSocketGotAdminInfo) {
+                  final deviceName = state.info.deviceName;
+                  final currentUsername =
+                      GetIt.I<UserService>().currentUser?.username;
+
+                  if (deviceName == 'default' &&
+                      currentUsername == 'admin' &&
+                      !_setupDialogShown) {
+                    _setupDialogShown = true;
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => InitialSetupDialog(
+                        initialAutoSwitch: state.info.autoSwitch,
+                      ),
+                    );
+                  }
                 }
               },
             ),

@@ -14,8 +14,6 @@ import 'package:smirror_wire/generated/back_app_back_app_generated.dart'
 import 'package:smirror_app/l10n/app_localizations.dart';
 import 'package:get_it/get_it.dart';
 import 'package:smirror_app/services/session_context_service.dart';
-import 'package:smirror_app/dialogs/initial_setup_dialog.dart';
-import 'package:smirror_app/services/user_service.dart';
 
 /// Describes which M3 color role a button uses.
 enum ControlButtonVariant { primary, secondary, tertiary }
@@ -173,7 +171,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool _setupDialogShown = false;
   Color _ledColor = Colors.blue;
   double _ledBrightness = 255;
   bool _ledOn = false;
@@ -416,7 +413,6 @@ class _HomeScreenState extends State<HomeScreen> {
             child: BlocConsumer<BackAppWebSocketBloc, BackAppWebSocketState>(
               listenWhen: (previous, current) =>
                   current is BackAppWebSocketWelcomeReceived ||
-                  current is BackAppWebSocketGotAdminInfo ||
                   current is BackAppWebSocketStatusReceived,
               listener: (context, state) {
                 final loc = AppLocalizations.of(context)!;
@@ -501,37 +497,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                   if (!state.needUpdate && updateMessage != null) {
                     _showUpdateAvailableDialog(context, updateMessage);
-                  }
-
-                  final deviceName = state.welcomeMessage.deviceName;
-                  final currentUsername =
-                      GetIt.I<UserService>().currentUser?.username;
-                  if (deviceName == 'default' && currentUsername == 'admin') {
-                    // Automatically request admin info to get settings (autoSwitch) and trigger the dialog
-                    context.read<AppWebSocketBloc>().add(
-                      AppWebSocketSendSimpleCommandRequested(
-                        commandType: appmsg.AppSimpleCommandType.GET_ADMIN_INFO,
-                      ),
-                    );
-                  }
-                }
-
-                if (state is BackAppWebSocketGotAdminInfo) {
-                  final deviceName = state.info.deviceName;
-                  final currentUsername =
-                      GetIt.I<UserService>().currentUser?.username;
-
-                  if (deviceName == 'default' &&
-                      currentUsername == 'admin' &&
-                      !_setupDialogShown) {
-                    _setupDialogShown = true;
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) => InitialSetupDialog(
-                        initialAutoSwitch: state.info.autoSwitch,
-                      ),
-                    );
                   }
                 }
               },
