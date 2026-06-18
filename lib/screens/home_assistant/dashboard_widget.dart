@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smirror_app/objectbox/home_dashboard.dart';
+import 'package:smirror_app/database/home_dashboard.dart';
 import 'package:smirror_app/screens/home_assistant/picker_helpers.dart';
 
 class DashboardWidget extends StatelessWidget {

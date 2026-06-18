@@ -8,8 +8,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:smirror_app/objectbox/device.dart';
-import 'package:smirror_app/objectbox/view_store.dart';
+import 'package:smirror_app/database/device.dart';
+import 'package:smirror_app/database/view_store.dart';
+import 'package:smirror_app/database/home_assistant_store.dart';
 import 'package:smirror_app/services/user_service.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -263,6 +264,8 @@ class WebSocketService {
         final entity = _viewStore.getDeviceByConnectionId(_activeDevice!.id);
         if (entity != null) {
           _viewStore.setCurrentDevice(entity.id);
+          await _viewStore.switchToDevice(entity);
+          await GetIt.I<HomeAssistantStore>().switchToDevice();
         }
       }
       _activeDeviceController.add(_activeDevice);
@@ -270,12 +273,33 @@ class WebSocketService {
 
     final String username;
     final String password;
-    if (kIsWeb) {
-      username = prefs.getString(_keyUsername) ?? '';
-      password = prefs.getString(_keyPassword) ?? '';
+    if (_activeDevice != null) {
+      final uKey = 'ws_username_${_activeDevice!.id}';
+      final pKey = 'ws_password_${_activeDevice!.id}';
+      String? savedUn;
+      String? savedPw;
+      if (kIsWeb) {
+        savedUn = prefs.getString(uKey);
+        savedPw = prefs.getString(pKey);
+        // Migration fallback
+        if (savedUn == null) {
+          savedUn = prefs.getString(_keyUsername);
+          savedPw = prefs.getString(_keyPassword);
+        }
+      } else {
+        savedUn = await _storage.read(key: uKey);
+        savedPw = await _storage.read(key: pKey);
+        // Migration fallback
+        if (savedUn == null) {
+          savedUn = await _storage.read(key: _keyUsername);
+          savedPw = await _storage.read(key: _keyPassword);
+        }
+      }
+      username = savedUn ?? '';
+      password = savedPw ?? '';
     } else {
-      username = await _storage.read(key: _keyUsername) ?? '';
-      password = await _storage.read(key: _keyPassword) ?? '';
+      username = '';
+      password = '';
     }
     await applyCredentialsAndConnect(
       username: username,
@@ -373,6 +397,12 @@ class WebSocketService {
   Future<void> setActiveDevice(DeviceConnection? device) async {
     if (kIsWeb) return;
     final changed = _activeDevice?.id != device?.id;
+    if (changed) {
+      // Clear the current user session context because we are switching to a new device!
+      _userService.changeUser(null);
+      _authRejected = false;
+      _upgradeRejected = false;
+    }
     _activeDevice = device;
     _activeDeviceController.add(_activeDevice);
 
@@ -380,7 +410,12 @@ class WebSocketService {
       final entity = _viewStore.getDeviceByConnectionId(device.id);
       if (entity != null) {
         _viewStore.setCurrentDevice(entity.id);
+        await _viewStore.switchToDevice(entity);
+        await GetIt.I<HomeAssistantStore>().switchToDevice();
       }
+    } else {
+      await _viewStore.switchToGlobal();
+      await GetIt.I<HomeAssistantStore>().switchToGlobal();
     }
 
     final prefs = await SharedPreferences.getInstance();
@@ -390,6 +425,24 @@ class WebSocketService {
       await prefs.remove(_keyActiveDeviceId);
     }
     if (changed) {
+      if (device != null) {
+        final uKey = 'ws_username_${device.id}';
+        final pKey = 'ws_password_${device.id}';
+        String? savedUn;
+        String? savedPw;
+        if (kIsWeb) {
+          savedUn = prefs.getString(uKey);
+          savedPw = prefs.getString(pKey);
+        } else {
+          savedUn = await _storage.read(key: uKey);
+          savedPw = await _storage.read(key: pKey);
+        }
+        _username = savedUn ?? '';
+        _password = savedPw ?? '';
+      } else {
+        _username = '';
+        _password = '';
+      }
       await reconnect();
     }
   }
@@ -397,23 +450,33 @@ class WebSocketService {
   Future<void> saveCredentials({String? username, String? password}) async {
     if (username != null) _username = username;
     if (password != null) _password = password;
+    if (_activeDevice == null) return;
+
+    final uKey = 'ws_username_${_activeDevice!.id}';
+    final pKey = 'ws_password_${_activeDevice!.id}';
+
     if (kIsWeb) {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_keyUsername, _username);
-      await prefs.setString(_keyPassword, _password);
+      await prefs.setString(uKey, _username);
+      await prefs.setString(pKey, _password);
     } else {
-      await _storage.write(key: _keyUsername, value: _username);
-      await _storage.write(key: _keyPassword, value: _password);
+      await _storage.write(key: uKey, value: _username);
+      await _storage.write(key: pKey, value: _password);
     }
   }
 
   Future<void> clearCredentials() async {
+    if (_activeDevice == null) return;
+    final uKey = 'ws_username_${_activeDevice!.id}';
+    final pKey = 'ws_password_${_activeDevice!.id}';
+
     if (kIsWeb) {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_keyUsername);
-      await prefs.remove(_keyPassword);
+      await prefs.remove(uKey);
+      await prefs.remove(pKey);
     } else {
-      await _storage.deleteAll();
+      await _storage.delete(key: uKey);
+      await _storage.delete(key: pKey);
     }
   }
 
@@ -598,9 +661,9 @@ class WebSocketService {
       if (sessionId != _connectionSessionId) return;
       _retryDelay = 1;
 
-      _listen();
       await _refreshUserContext();
       if (sessionId != _connectionSessionId) return;
+      _listen();
       _setStatus(WsStatus.connected);
 
       // Complete the ready gate (only if not already completed)
@@ -753,9 +816,9 @@ class WebSocketService {
         if (sessionId != _connectionSessionId) return;
         _retryDelay = 1;
 
-        _listen();
         await _refreshUserContext();
         if (sessionId != _connectionSessionId) return;
+        _listen();
         _setStatus(WsStatus.connected);
 
         // Complete the ready gate (only if not already completed)

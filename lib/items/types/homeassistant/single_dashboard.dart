@@ -12,7 +12,7 @@ import 'package:smirror_wire/generated/dashboard_dashboard_structure_generated.d
 import 'package:smirror_wire/constants/widget_ids.dart';
 import 'package:smirror_app/items/widget_type_definition.dart';
 import 'package:smirror_app/l10n/app_localizations.dart' show AppLocalizations;
-import 'package:smirror_app/objectbox/home_assistant_store.dart';
+import 'package:smirror_app/database/home_assistant_store.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HASingleDashboard extends WidgetTypeDefinition {

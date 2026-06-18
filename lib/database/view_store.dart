@@ -1,17 +1,21 @@
+import 'dart:io';
 import 'dart:ui' show Offset, Size;
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:drift/drift.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:smirror_app/bloc/viewConfig/view_config_models.dart';
 import 'package:smirror_wire/constants/widget_ids.dart';
-import 'package:smirror_app/objectbox/database.dart';
-import 'package:smirror_app/objectbox/device.dart';
-import 'package:smirror_app/objectbox/view_config.dart';
-import 'package:smirror_app/objectbox/view_config_property_mapper.dart';
+import 'package:smirror_app/database/database.dart';
+import 'package:smirror_app/database/device.dart';
+import 'package:smirror_app/database/view_config.dart';
+import 'package:smirror_app/database/view_config_property_mapper.dart';
 
 @singleton
 class ViewStore {
-  final AppDatabase _db = GetIt.I<AppDatabase>();
+  AppDatabase get _db => GetIt.I<AppDatabase>();
+  AppDatabase get _globalDb => GetIt.I<AppDatabase>(instanceName: 'global');
   final List<DeviceEntity> _devices = [];
   final List<UserEntity> _users = [];
   final List<ViewEntity> _views = [];
@@ -27,8 +31,9 @@ class ViewStore {
   /// Initializes the Drift store cache. Call once at app startup.
   @postConstruct
   Future<void> init() async {
-    // 1. Load all devices
-    final dbDevices = await _db.select(_db.devices).get();
+    // 1. Load all devices from global database
+    final dbDevices = await _globalDb.select(_globalDb.devices).get();
+    _devices.clear();
     for (final d in dbDevices) {
       _devices.add(DeviceEntity(
         id: d.id,
@@ -38,8 +43,63 @@ class ViewStore {
         port: d.port,
       ));
     }
+  }
 
-    // 2. Load all users
+  /// Switches database to device connection database
+  Future<void> switchToDevice(DeviceEntity device) async {
+    final currentDb = GetIt.I<AppDatabase>();
+    final globalDb = GetIt.I<AppDatabase>(instanceName: 'global');
+
+    // Unregister current database so we can register the new singleton
+    if (GetIt.I.isRegistered<AppDatabase>()) {
+      await GetIt.I.unregister<AppDatabase>();
+    }
+
+    // Close previous device connection if it's open and distinct from global
+    if (currentDb != globalDb) {
+      await currentDb.close();
+    }
+
+    // Initialize new device database
+    final newDb = AppDatabase('smirror_${device.connectionId}');
+    GetIt.I.registerSingleton<AppDatabase>(newDb);
+
+    _currentDeviceId = device.id;
+
+    // Ensure the device entity is replicated in this device database for foreign keys
+    await newDb.into(newDb.devices).insertOnConflictUpdate(DevicesCompanion(
+          id: Value(device.id),
+          connectionId: Value(device.connectionId),
+          name: Value(device.name),
+          ip: Value(device.ip),
+          port: Value(device.port),
+        ));
+
+    await loadDeviceData();
+  }
+
+  /// Switches database back to global database
+  Future<void> switchToGlobal() async {
+    final currentDb = GetIt.I<AppDatabase>();
+    final globalDb = GetIt.I<AppDatabase>(instanceName: 'global');
+
+    if (currentDb != globalDb) {
+      await currentDb.close();
+      GetIt.I.unregister<AppDatabase>();
+      GetIt.I.registerSingleton<AppDatabase>(globalDb);
+    }
+
+    _currentDeviceId = null;
+    _users.clear();
+    _views.clear();
+  }
+
+  /// Loads users and views data from the current device-specific database.
+  Future<void> loadDeviceData() async {
+    _users.clear();
+    _views.clear();
+
+    // 2. Load all users from device-specific database
     final dbUsers = await _db.select(_db.users).get();
     for (final u in dbUsers) {
       final uEntity = UserEntity(id: u.id, username: u.username);
@@ -51,7 +111,7 @@ class ViewStore {
       _users.add(uEntity);
     }
 
-    // 3. Load all views
+    // 3. Load all views from device-specific database
     final dbViews = await _db.select(_db.views).get();
     for (final v in dbViews) {
       final vEntity = ViewEntity(
@@ -61,6 +121,7 @@ class ViewStore {
         language: v.language,
         theme: v.theme,
         backendId: v.backendId,
+        dirty: v.dirty,
       );
 
       // Load pages for this view
@@ -149,6 +210,26 @@ class ViewStore {
     }
   }
 
+  Future<void> _deleteDeviceDatabaseFile(String connectionId) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final prefixes = [
+        'smirror_$connectionId.sqlite',
+        'smirror_$connectionId.sqlite-journal',
+        'smirror_$connectionId.sqlite-shm',
+        'smirror_$connectionId.sqlite-wal'
+      ];
+      for (final prefix in prefixes) {
+        final dbFile = File(p.join(dir.path, prefix));
+        if (await dbFile.exists()) {
+          await dbFile.delete();
+        }
+      }
+    } catch (e) {
+      // Ignore
+    }
+  }
+
   /// Returns the [ViewEntity] for [userId], or null if none exists yet.
   ViewEntity? getViewForUser(int userId) {
     return getViewsForUser(userId).firstOrNull;
@@ -159,6 +240,7 @@ class ViewStore {
     final view = _views.where((v) => v.id == viewId).firstOrNull;
     if (view == null) return;
     view.timestamp = timestamp;
+    view.dirty = false;
 
     _db.into(_db.views).insertOnConflictUpdate(ViewsCompanion(
           id: Value(view.id),
@@ -167,6 +249,7 @@ class ViewStore {
           language: Value(view.language),
           theme: Value(view.theme),
           backendId: Value(view.backendId),
+          dirty: Value(view.dirty),
         ));
   }
 
@@ -176,10 +259,13 @@ class ViewStore {
   }
 
   /// Persists [theme] for [viewId].
-  void saveThemeForView(int viewId, int theme) {
+  void saveThemeForView(int viewId, int theme, {bool setDirty = true}) {
     final view = _views.where((v) => v.id == viewId).firstOrNull;
     if (view == null) return;
     view.theme = theme;
+    if (setDirty) {
+      view.dirty = true;
+    }
 
     _db.into(_db.views).insertOnConflictUpdate(ViewsCompanion(
           id: Value(view.id),
@@ -188,6 +274,7 @@ class ViewStore {
           language: Value(view.language),
           theme: Value(view.theme),
           backendId: Value(view.backendId),
+          dirty: Value(view.dirty),
         ));
   }
 
@@ -197,10 +284,13 @@ class ViewStore {
   }
 
   /// Persists [language] for [viewId].
-  void saveLanguageForView(int viewId, String language) {
+  void saveLanguageForView(int viewId, String language, {bool setDirty = true}) {
     final view = _views.where((v) => v.id == viewId).firstOrNull;
     if (view == null) return;
     view.language = language;
+    if (setDirty) {
+      view.dirty = true;
+    }
 
     _db.into(_db.views).insertOnConflictUpdate(ViewsCompanion(
           id: Value(view.id),
@@ -209,6 +299,7 @@ class ViewStore {
           language: Value(view.language),
           theme: Value(view.theme),
           backendId: Value(view.backendId),
+          dirty: Value(view.dirty),
         ));
   }
 
@@ -239,6 +330,7 @@ class ViewStore {
       view.timestamp = timestamp;
       view.language = language;
       view.theme = theme;
+      view.dirty = false;
     } else {
       int nextId = 1;
       if (_views.isNotEmpty) {
@@ -250,6 +342,7 @@ class ViewStore {
         timestamp: timestamp,
         language: language,
         theme: theme,
+        dirty: false,
       );
       _views.add(view);
     }
@@ -261,9 +354,10 @@ class ViewStore {
           language: Value(view.language),
           theme: Value(view.theme),
           backendId: Value(view.backendId),
+          dirty: Value(view.dirty),
         ));
 
-    await savePagesForView(view.id, pages);
+    await savePagesForView(view.id, pages, setDirty: false);
 
     // Collect all binary IDs referenced in the incoming pages
     final binaryIds = <int>[];
@@ -406,7 +500,7 @@ class ViewStore {
       }
     }
 
-    _db.into(_db.devices).insertOnConflictUpdate(DevicesCompanion(
+    _globalDb.into(_globalDb.devices).insertOnConflictUpdate(DevicesCompanion(
           id: Value(device.id),
           connectionId: Value(device.connectionId),
           name: Value(device.name),
@@ -414,17 +508,32 @@ class ViewStore {
           port: Value(device.port),
         ));
 
+    if (device.id == _currentDeviceId) {
+      _db.into(_db.devices).insertOnConflictUpdate(DevicesCompanion(
+            id: Value(device.id),
+            connectionId: Value(device.connectionId),
+            name: Value(device.name),
+            ip: Value(device.ip),
+            port: Value(device.port),
+          ));
+    }
+
     return device.id;
   }
 
   void removeDevice(int id) {
+    final device = _devices.where((d) => d.id == id).firstOrNull;
     _devices.removeWhere((d) => d.id == id);
     _users.removeWhere((u) => u.device.targetId == id);
     _views.removeWhere((v) => !_users.any((u) => u.id == v.userId));
 
-    _db.transaction(() async {
-      await (_db.delete(_db.devices)..where((t) => t.id.equals(id))).go();
+    _globalDb.transaction(() async {
+      await (_globalDb.delete(_globalDb.devices)..where((t) => t.id.equals(id))).go();
     });
+
+    if (device != null) {
+      _deleteDeviceDatabaseFile(device.connectionId);
+    }
   }
 
   DeviceEntity? getDeviceByConnectionId(String connectionId) {
@@ -443,7 +552,7 @@ class ViewStore {
       nextId = _views.map((v) => v.id).reduce((a, b) => a > b ? a : b) + 1;
     }
 
-    final view = ViewEntity(id: nextId, userId: userId);
+    final view = ViewEntity(id: nextId, userId: userId, dirty: false);
     _views.add(view);
 
     _db.into(_db.views).insertOnConflictUpdate(ViewsCompanion(
@@ -453,6 +562,7 @@ class ViewStore {
           language: Value(view.language),
           theme: Value(view.theme),
           backendId: Value(view.backendId),
+          dirty: Value(view.dirty),
         ));
 
     return view.id;
@@ -500,23 +610,36 @@ class ViewStore {
       );
       pages.add(defaultPage);
       // Persist it
-      savePagesForView(viewId, pages);
+      savePagesForView(viewId, pages, setDirty: false);
     }
 
     return pages;
   }
 
   /// Persists a list of domain pages back to the store under the given view ID.
-  Future<void> savePagesForView(int viewId, List<ViewConfigPage> pages) async {
+  Future<void> savePagesForView(int viewId, List<ViewConfigPage> pages, {bool setDirty = true}) async {
     final view = _views.where((v) => v.id == viewId).firstOrNull;
     if (view == null) return;
 
     // Clear in-memory pages
     view.pages.clear();
+    if (setDirty) {
+      view.dirty = true;
+    }
 
     await _db.transaction(() async {
       // 1. Delete all existing pages referencing this view (cascades to widgets/properties)
       await (_db.delete(_db.pages)..where((t) => t.viewId.equals(viewId))).go();
+
+      await _db.into(_db.views).insertOnConflictUpdate(ViewsCompanion(
+            id: Value(view.id),
+            userId: Value(view.userId),
+            timestamp: Value(view.timestamp),
+            language: Value(view.language),
+            theme: Value(view.theme),
+            backendId: Value(view.backendId),
+            dirty: Value(view.dirty),
+          ));
 
       // 2. Insert new pages, widgets, properties
       for (final page in pages) {

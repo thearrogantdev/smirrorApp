@@ -40,13 +40,15 @@ class BackAppWebSocketWelcomeReceived extends BackAppWebSocketState {
   final backmsg.WelcomeMessageT welcomeMessage;
   final bool needUpdate;
   final int viewId;
+  final bool isDirty;
   BackAppWebSocketWelcomeReceived(
     this.welcomeMessage,
     this.needUpdate,
-    this.viewId,
-  );
+    this.viewId, {
+    this.isDirty = false,
+  });
   @override
-  List<Object?> get props => [welcomeMessage, needUpdate, viewId];
+  List<Object?> get props => [welcomeMessage, needUpdate, viewId, isDirty];
 }
 
 class BackAppWebSocketUnknownPayload extends BackAppWebSocketState {

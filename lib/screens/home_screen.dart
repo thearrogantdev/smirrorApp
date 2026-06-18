@@ -9,8 +9,6 @@ import 'package:smirror_app/bloc/backendConnection/back_app_websocket_state.dart
 import 'package:smirror_app/bloc/setup_cubit.dart';
 import 'package:smirror_wire/generated/app_back_app_back_generated.dart'
     as appmsg;
-import 'package:smirror_wire/generated/back_app_back_app_generated.dart'
-    as backmsg;
 import 'package:smirror_app/l10n/app_localizations.dart';
 import 'package:get_it/get_it.dart';
 import 'package:smirror_app/services/session_context_service.dart';
@@ -174,62 +172,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Color _ledColor = Colors.blue;
   double _ledBrightness = 255;
   bool _ledOn = false;
-  String? _shownUpdateMessage;
-
-  String? _buildUpdateAvailableMessage(
-    AppLocalizations loc,
-    backmsg.WelcomeMessageT welcomeMessage,
-  ) {
-    final updateAvailable = welcomeMessage.updateAvailable;
-    if (updateAvailable == null) {
-      return null;
-    }
-
-    final frontendVersion = updateAvailable.versionFrontend?.trim() ?? '';
-    final backendVersion = updateAvailable.versionBackend?.trim() ?? '';
-    final webappVersion = updateAvailable.versionWebapp?.trim() ?? '';
-    final lines = <String>[
-      if (frontendVersion.isNotEmpty)
-        loc.welcomeFrontendUpdateAvailable(frontendVersion),
-      if (backendVersion.isNotEmpty)
-        loc.welcomeBackendUpdateAvailable(backendVersion),
-      if (webappVersion.isNotEmpty)
-        loc.welcomeWebappUpdateAvailable(webappVersion),
-    ];
-
-    if (lines.isEmpty) {
-      return null;
-    }
-
-    lines.add('');
-    lines.add(loc.welcomeUpdateAvailableAction);
-    return lines.join('\n');
-  }
-
-  Future<void> _showUpdateAvailableDialog(
-    BuildContext context,
-    String message,
-  ) async {
-    if (_shownUpdateMessage == message) {
-      return;
-    }
-    _shownUpdateMessage = message;
-
-    final loc = AppLocalizations.of(context)!;
-    await showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(loc.welcomeUpdateAvailableTitle),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(loc.close),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _showLedControlDialog(BuildContext context, AppWebSocketBloc appBloc) {
     final loc = AppLocalizations.of(context)!;
@@ -324,18 +266,6 @@ class _HomeScreenState extends State<HomeScreen> {
       final loc = AppLocalizations.of(context)!;
       return [
         ControlAction(
-          label: loc.homeWakeUp,
-          icon: Icons.light_mode_rounded,
-          variant: ControlButtonVariant.primary,
-          onTap: () {
-            appBloc.add(
-              AppWebSocketSendSimpleCommandRequested(
-                commandType: appmsg.AppSimpleCommandType.WAKEUP,
-              ),
-            );
-          },
-        ),
-        ControlAction(
           label: loc.homeStandBy,
           icon: Icons.bedtime_rounded,
           variant: ControlButtonVariant.secondary,
@@ -412,11 +342,8 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: BlocConsumer<BackAppWebSocketBloc, BackAppWebSocketState>(
               listenWhen: (previous, current) =>
-                  current is BackAppWebSocketWelcomeReceived ||
                   current is BackAppWebSocketStatusReceived,
               listener: (context, state) {
-                final loc = AppLocalizations.of(context)!;
-
                 if (state is BackAppWebSocketStatusReceived) {
                   final led = state.status.ledStatus;
                   if (led != null) {
@@ -430,73 +357,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                       _ledBrightness = led.brightness.toDouble();
                     });
-                  }
-                }
-
-                if (state is BackAppWebSocketWelcomeReceived &&
-                    state.needUpdate) {
-                  if (state.viewId == 0) {
-                    context.read<AppWebSocketBloc>().add(
-                      AppWebSocketSendSimpleCommandRequested(
-                        commandType:
-                            appmsg.AppSimpleCommandType.GET_CURRENT_USER_VIEW,
-                      ),
-                    );
-
-                    final updateMessage = _buildUpdateAvailableMessage(
-                      loc,
-                      state.welcomeMessage,
-                    );
-                    if (updateMessage != null) {
-                      _showUpdateAvailableDialog(context, updateMessage);
-                    }
-                  } else {
-                    final updateMessage = _buildUpdateAvailableMessage(
-                      loc,
-                      state.welcomeMessage,
-                    );
-                    showDialog<bool>(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) => AlertDialog(
-                        title: Text(loc.syncAvailableTitle),
-                        content: Text(loc.syncAvailableMessage),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: Text(loc.cancel),
-                          ),
-                          ElevatedButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            child: Text(loc.update),
-                          ),
-                        ],
-                      ),
-                    ).then((confirmed) {
-                      if (confirmed == true && context.mounted) {
-                        context.read<AppWebSocketBloc>().add(
-                          AppWebSocketSendSimpleCommandRequested(
-                            commandType: appmsg
-                                .AppSimpleCommandType
-                                .GET_CURRENT_USER_VIEW,
-                          ),
-                        );
-                      }
-
-                      if (updateMessage != null && context.mounted) {
-                        _showUpdateAvailableDialog(context, updateMessage);
-                      }
-                    });
-                  }
-                }
-
-                if (state is BackAppWebSocketWelcomeReceived) {
-                  final updateMessage = _buildUpdateAvailableMessage(
-                    loc,
-                    state.welcomeMessage,
-                  );
-                  if (!state.needUpdate && updateMessage != null) {
-                    _showUpdateAvailableDialog(context, updateMessage);
                   }
                 }
               },

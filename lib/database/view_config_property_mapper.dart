@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'package:smirror_app/bloc/viewConfig/view_config_models.dart';
-import 'package:smirror_app/objectbox/relations_compatibility.dart';
-import 'package:smirror_app/objectbox/view_config.dart';
+import 'package:smirror_app/database/relations_compatibility.dart';
+import 'package:smirror_app/database/view_config.dart';
 
 class ViewConfigPropertyMapper {
   /// Convert in-memory `ViewConfigProperty` to a `WidgetPropertyEntity` + associated typed value(s).

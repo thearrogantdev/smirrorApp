@@ -21,8 +21,8 @@ import 'package:smirror_wire/generated/dashboard_dashboard_structure_generated.d
 import 'package:smirror_app/items/common_canvas.dart';
 import 'package:smirror_app/dialogs/widget_config_dialog.dart';
 import 'package:smirror_app/l10n/app_localizations.dart';
-import 'package:smirror_app/objectbox/home_assistant_store.dart';
-import 'package:smirror_app/objectbox/home_dashboard.dart';
+import 'package:smirror_app/database/home_assistant_store.dart';
+import 'package:smirror_app/database/home_dashboard.dart';
 import 'package:smirror_app/screens/home_assistant/dashboard_widget.dart';
 import 'package:smirror_app/screens/home_assistant/entity_picker.dart';
 import 'package:smirror_app/screens/home_assistant/item_config_dialog.dart';

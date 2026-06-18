@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:smirror_app/bloc/homeAssistant/home_assistant_event.dart';
 import 'package:smirror_app/bloc/homeAssistant/home_assistant_state.dart';
-import 'package:smirror_app/objectbox/home_assistant_store.dart';
-import 'package:smirror_app/objectbox/home_dashboard.dart';
+import 'package:smirror_app/database/home_assistant_store.dart';
+import 'package:smirror_app/database/home_dashboard.dart';
 
 class HABloc extends Bloc<HAEvent, HAState> {
   final _store = GetIt.I<HomeAssistantStore>();

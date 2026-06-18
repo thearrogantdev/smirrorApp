@@ -12,7 +12,7 @@ import 'package:smirror_wire/generated/widget_internals_widget_internals_generat
 import 'package:smirror_wire/constants/widget_ids.dart';
 import 'package:smirror_app/items/widget_type_definition.dart';
 import 'package:smirror_app/l10n/app_localizations.dart' show AppLocalizations;
-import 'package:smirror_app/objectbox/home_assistant_store.dart';
+import 'package:smirror_app/database/home_assistant_store.dart';
 import 'dart:typed_data';
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 import 'package:flutter_bloc/flutter_bloc.dart';

@@ -1,10 +1,8 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
-import 'package:injectable/injectable.dart';
-
 part 'database.g.dart';
 
-// 1. Devices Table
+// Devices Table
 @DataClassName('DeviceRow')
 class Devices extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -14,7 +12,7 @@ class Devices extends Table {
   IntColumn get port => integer()();
 }
 
-// 2. Users Table
+// Users Table
 @DataClassName('UserRow')
 class Users extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -27,7 +25,7 @@ class Users extends Table {
       ];
 }
 
-// 3. Views Table
+// Views Table
 @DataClassName('ViewRow')
 class Views extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -36,9 +34,10 @@ class Views extends Table {
   IntColumn get timestamp => integer().withDefault(const Constant(0))();
   TextColumn get language => text().withDefault(const Constant(''))();
   IntColumn get theme => integer().withDefault(const Constant(0))();
+  BoolColumn get dirty => boolean().withDefault(const Constant(false))();
 }
 
-// 4. Pages Table
+// Pages Table
 @DataClassName('PageRow')
 class Pages extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -46,7 +45,7 @@ class Pages extends Table {
   IntColumn get viewId => integer().references(Views, #id, onDelete: KeyAction.cascade)();
 }
 
-// 5. Widgets Table
+// Widgets Table
 @DataClassName('WidgetRow')
 class Widgets extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -58,7 +57,7 @@ class Widgets extends Table {
   IntColumn get pageId => integer().references(Pages, #id, onDelete: KeyAction.cascade)();
 }
 
-// 6. WidgetProperties Table
+// WidgetProperties Table
 @DataClassName('WidgetPropertyRow')
 class WidgetProperties extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -67,7 +66,7 @@ class WidgetProperties extends Table {
   IntColumn get widgetId => integer().references(Widgets, #id, onDelete: KeyAction.cascade)();
 }
 
-// 7. WidgetPropertyStrings Table
+// WidgetPropertyStrings Table
 @DataClassName('WidgetPropertyStringRow')
 class WidgetPropertyStrings extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -75,7 +74,7 @@ class WidgetPropertyStrings extends Table {
   TextColumn get value => text()();
 }
 
-// 8. WidgetPropertyInts Table
+// WidgetPropertyInts Table
 @DataClassName('WidgetPropertyIntRow')
 class WidgetPropertyInts extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -83,7 +82,7 @@ class WidgetPropertyInts extends Table {
   IntColumn get value => integer()();
 }
 
-// 9. WidgetPropertyFloats Table
+// WidgetPropertyFloats Table
 @DataClassName('WidgetPropertyFloatRow')
 class WidgetPropertyFloats extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -91,7 +90,7 @@ class WidgetPropertyFloats extends Table {
   RealColumn get value => real()();
 }
 
-// 10. WidgetPropertyBools Table
+// WidgetPropertyBools Table
 @DataClassName('WidgetPropertyBoolRow')
 class WidgetPropertyBools extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -99,7 +98,7 @@ class WidgetPropertyBools extends Table {
   BoolColumn get value => boolean()();
 }
 
-// 11. WidgetPropertyRawBytesList Table
+// WidgetPropertyRawBytesList Table
 @DataClassName('WidgetPropertyRawBytesRow')
 class WidgetPropertyRawBytesList extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -107,7 +106,7 @@ class WidgetPropertyRawBytesList extends Table {
   BlobColumn get value => blob()();
 }
 
-// 12. Dashboards Table
+// Dashboards Table
 @DataClassName('DashboardRow')
 class Dashboards extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -121,7 +120,7 @@ class Dashboards extends Table {
   RealColumn get height => real().withDefault(const Constant(1080.0))();
 }
 
-// 13. DashboardItems Table
+// DashboardItems Table
 @DataClassName('DashboardItemRow')
 class DashboardItems extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -138,7 +137,7 @@ class DashboardItems extends Table {
   IntColumn get dashboardId => integer().references(Dashboards, #id, onDelete: KeyAction.cascade)();
 }
 
-// 14. ThresholdConfigs Table
+// ThresholdConfigs Table
 @DataClassName('ThresholdConfigRow')
 class ThresholdConfigs extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -164,28 +163,33 @@ class ThresholdConfigs extends Table {
   DashboardItems,
   ThresholdConfigs,
 ])
-@singleton
 class AppDatabase extends _$AppDatabase {
-  AppDatabase()
+  AppDatabase(String name)
       : super(
           driftDatabase(
-            name: 'smirror',
+            name: name,
             web: DriftWebOptions(
               sqlite3Wasm: Uri.parse('sqlite3.wasm'),
               driftWorker: Uri.parse('drift_worker.js'),
             ),
           ),
-        );
+        ) {
+    driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+  }
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       beforeOpen: (details) async {
-        // Enable foreign key support
         await customStatement('PRAGMA foreign_keys = ON');
+      },
+      onUpgrade: (m, from, to) async {
+        if (from < 2) {
+          await m.addColumn(views, views.dirty);
+        }
       },
     );
   }

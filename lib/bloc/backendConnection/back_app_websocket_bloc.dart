@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:smirror_app/database/home_dashboard.dart';
+import 'package:smirror_app/services/websocket_service.dart';
 import 'package:smirror_wire/generated/app_back_app_back_generated.dart'
     as appmsg;
 import 'package:smirror_wire/generated/back_app_back_app_generated.dart'
@@ -12,17 +14,14 @@ import 'package:smirror_wire/generated/dashboard_dashboard_structure_generated.d
 import 'package:smirror_wire/generated/frame_frame_data_generated.dart'
     as frame_data;
 import 'package:smirror_wire/generated/view_view_structure_generated.dart' as vs;
-
-import 'package:smirror_app/objectbox/home_assistant_store.dart';
-import 'package:smirror_app/objectbox/view_store.dart';
-import 'package:smirror_app/objectbox/view_structor_mapper.dart';
+import 'package:smirror_app/database/home_assistant_store.dart';
+import 'package:smirror_app/database/view_store.dart';
+import 'package:smirror_app/database/view_structor_mapper.dart';
 import 'package:smirror_app/services/binary_transfer_repository.dart';
 import 'package:smirror_app/services/google_token_service.dart';
 import 'package:smirror_app/services/path_service.dart';
 import 'package:smirror_app/services/session_context_service.dart';
 import 'package:smirror_app/services/user_service.dart';
-import '../../objectbox/home_dashboard.dart';
-import '../../services/websocket_service.dart';
 import 'back_app_websocket_state.dart';
 
 class BackAppWebSocketBloc extends Cubit<BackAppWebSocketState> {
@@ -278,16 +277,24 @@ class BackAppWebSocketBloc extends Cubit<BackAppWebSocketState> {
               s.viewTimestamp,
             );
             int viewId = 0;
+            bool isDirty = false;
             if (needUpdate) {
-              viewId =
-                  viewStore
-                      .getViewForUser(user.currentUser?.localUserId ?? 0)
-                      ?.id ??
-                  0;
+              final existingView = viewStore.getViewForUser(
+                user.currentUser?.localUserId ?? 0,
+              );
+              viewId = existingView?.id ?? 0;
+              isDirty = existingView?.dirty ?? false;
             }
-            emit(BackAppWebSocketWelcomeReceived(s, needUpdate, viewId));
+            emit(
+              BackAppWebSocketWelcomeReceived(
+                s,
+                needUpdate,
+                viewId,
+                isDirty: isDirty,
+              ),
+            );
           } else {
-            emit(BackAppWebSocketWelcomeReceived(s, false, 0));
+            emit(BackAppWebSocketWelcomeReceived(s, false, 0, isDirty: false));
           }
           break;
 

@@ -2,12 +2,12 @@ import 'dart:async';
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:drift/drift.dart';
-import 'package:smirror_app/objectbox/database.dart';
-import 'package:smirror_app/objectbox/home_dashboard.dart';
+import 'package:smirror_app/database/database.dart';
+import 'package:smirror_app/database/home_dashboard.dart';
 
 @singleton
 class HomeAssistantStore {
-  final AppDatabase _db = GetIt.I<AppDatabase>();
+  AppDatabase get _db => GetIt.I<AppDatabase>();
   final List<Dashboard> _dashboards = [];
 
   final _dashboardsController = StreamController<List<Dashboard>>.broadcast();
@@ -30,6 +30,21 @@ class HomeAssistantStore {
 
   @postConstruct
   Future<void> init() async {
+    // We do not load dashboards here anymore because no active device is selected yet.
+  }
+
+  Future<void> switchToDevice() async {
+    await loadDeviceData();
+  }
+
+  Future<void> switchToGlobal() async {
+    _dashboards.clear();
+    _notifyDashboards();
+  }
+
+  Future<void> loadDeviceData() async {
+    _dashboards.clear();
+
     // 1. Load dashboards
     final dbDashboards = await _db.select(_db.dashboards).get();
     for (final d in dbDashboards) {
@@ -81,6 +96,7 @@ class HomeAssistantStore {
       }
       _dashboards.add(dEntity);
     }
+    _notifyDashboards();
   }
 
   // --- Dashboards ---

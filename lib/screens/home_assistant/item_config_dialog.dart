@@ -3,7 +3,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:smirror_app/bloc/homeAssistant/home_assistant_models.dart';
 import 'package:smirror_app/l10n/app_localizations.dart';
-import 'package:smirror_app/objectbox/home_dashboard.dart';
+import 'package:smirror_app/database/home_dashboard.dart';
 import 'package:smirror_app/screens/home_assistant/picker_helpers.dart';
 
 class ItemConfigDialog extends StatefulWidget {

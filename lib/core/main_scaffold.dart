@@ -41,6 +41,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   StreamSubscription<User?>? _userSub;
   bool _hasConnectedOnce = false;
   bool _setupDialogShown = false;
+  String? _shownUpdateMessage;
 
   @override
   void initState() {
@@ -101,6 +102,61 @@ class _MainScaffoldState extends State<MainScaffold> {
     );
   }
 
+  String? _buildUpdateAvailableMessage(
+    AppLocalizations loc,
+    backmsg.WelcomeMessageT welcomeMessage,
+  ) {
+    final updateAvailable = welcomeMessage.updateAvailable;
+    if (updateAvailable == null) {
+      return null;
+    }
+
+    final frontendVersion = updateAvailable.versionFrontend?.trim() ?? '';
+    final backendVersion = updateAvailable.versionBackend?.trim() ?? '';
+    final webappVersion = updateAvailable.versionWebapp?.trim() ?? '';
+    final lines = <String>[
+      if (frontendVersion.isNotEmpty)
+        loc.welcomeFrontendUpdateAvailable(frontendVersion),
+      if (backendVersion.isNotEmpty)
+        loc.welcomeBackendUpdateAvailable(backendVersion),
+      if (webappVersion.isNotEmpty)
+        loc.welcomeWebappUpdateAvailable(webappVersion),
+    ];
+
+    if (lines.isEmpty) {
+      return null;
+    }
+
+    lines.add('');
+    lines.add(loc.welcomeUpdateAvailableAction);
+    return lines.join('\n');
+  }
+
+  Future<void> _showUpdateAvailableDialog(
+    BuildContext context,
+    String message,
+  ) async {
+    if (_shownUpdateMessage == message) {
+      return;
+    }
+    _shownUpdateMessage = message;
+
+    final loc = AppLocalizations.of(context)!;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(loc.welcomeUpdateAvailableTitle),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(loc.close),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SessionContextCubit, int>(
@@ -124,6 +180,71 @@ class _MainScaffoldState extends State<MainScaffold> {
                         commandType: appmsg.AppSimpleCommandType.GET_ADMIN_INFO,
                       ),
                     );
+                  }
+
+                  final loc = AppLocalizations.of(context)!;
+                  if (state.needUpdate) {
+                    if (state.viewId == 0 || !state.isDirty) {
+                      context.read<AppWebSocketBloc>().add(
+                        AppWebSocketSendSimpleCommandRequested(
+                          commandType:
+                              appmsg.AppSimpleCommandType.GET_CURRENT_USER_VIEW,
+                        ),
+                      );
+
+                      final updateMessage = _buildUpdateAvailableMessage(
+                        loc,
+                        state.welcomeMessage,
+                      );
+                      if (updateMessage != null) {
+                        _showUpdateAvailableDialog(context, updateMessage);
+                      }
+                    } else {
+                      final updateMessage = _buildUpdateAvailableMessage(
+                        loc,
+                        state.welcomeMessage,
+                      );
+                      showDialog<bool>(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (context) => AlertDialog(
+                          title: Text(loc.syncAvailableTitle),
+                          content: Text(loc.syncAvailableMessage),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: Text(loc.cancel),
+                            ),
+                            ElevatedButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: Text(loc.update),
+                            ),
+                          ],
+                        ),
+                      ).then((confirmed) {
+                        if (confirmed == true && context.mounted) {
+                          context.read<AppWebSocketBloc>().add(
+                            AppWebSocketSendSimpleCommandRequested(
+                              commandType: appmsg
+                                  .AppSimpleCommandType
+                                  .GET_CURRENT_USER_VIEW,
+                            ),
+                          );
+                        }
+
+                        if (updateMessage != null && context.mounted) {
+                          _showUpdateAvailableDialog(context, updateMessage);
+                        }
+                      });
+                    }
+                  } else {
+                    final updateMessage = _buildUpdateAvailableMessage(
+                      loc,
+                      state.welcomeMessage,
+                    );
+                    if (updateMessage != null) {
+                      _showUpdateAvailableDialog(context, updateMessage);
+                    }
                   }
                 }
 

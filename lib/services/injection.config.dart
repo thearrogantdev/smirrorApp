@@ -11,9 +11,8 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
-import 'package:smirror_app/objectbox/database.dart' as _i186;
-import 'package:smirror_app/objectbox/home_assistant_store.dart' as _i26;
-import 'package:smirror_app/objectbox/view_store.dart' as _i369;
+import 'package:smirror_app/database/home_assistant_store.dart' as _i692;
+import 'package:smirror_app/database/view_store.dart' as _i364;
 import 'package:smirror_app/router/app_router.dart' as _i339;
 import 'package:smirror_app/services/binary_transfer_repository.dart' as _i321;
 import 'package:smirror_app/services/google_token_service.dart' as _i753;
@@ -33,13 +32,12 @@ extension GetItInjectableX on _i174.GetIt {
     _i526.EnvironmentFilter? environmentFilter,
   }) {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
-    gh.singleton<_i186.AppDatabase>(() => _i186.AppDatabase());
-    gh.singletonAsync<_i26.HomeAssistantStore>(() {
-      final i = _i26.HomeAssistantStore();
+    gh.singletonAsync<_i692.HomeAssistantStore>(() {
+      final i = _i692.HomeAssistantStore();
       return i.init().then((_) => i);
     });
-    gh.singletonAsync<_i369.ViewStore>(() {
-      final i = _i369.ViewStore();
+    gh.singletonAsync<_i364.ViewStore>(() {
+      final i = _i364.ViewStore();
       return i.init().then((_) => i);
     });
     gh.singleton<_i339.AppRouter>(() => _i339.AppRouter());

@@ -8,8 +8,8 @@ import 'package:smirror_wire/generated/back_app_back_app_generated.dart'
     as backmsg;
 import 'package:smirror_wire/generated/dashboard_dashboard_structure_generated.dart'
     as dash;
-import 'package:smirror_app/objectbox/home_assistant_store.dart';
-import 'package:smirror_app/objectbox/view_store.dart';
+import 'package:smirror_app/database/home_assistant_store.dart';
+import 'package:smirror_app/database/view_store.dart';
 import 'package:smirror_app/services/binary_transfer_repository.dart';
 import 'package:smirror_app/bloc/viewConfig/view_config_models.dart';
 import 'package:smirror_wire/constants/widget_ids.dart';

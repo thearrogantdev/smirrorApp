@@ -307,6 +307,8 @@ class _AdminScreenState extends State<AdminScreen> {
       await Clipboard.setData(ClipboardData(text: content));
     } catch (_) {}
 
+    if (!mounted) return;
+
     if (kIsWeb) {
       try {
         triggerWebDownload(content, 'smirror.toml');

@@ -4,7 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:smirror_app/bloc/viewConfig/view_config_event.dart';
 import 'package:smirror_app/bloc/viewConfig/view_config_models.dart';
 import 'package:smirror_app/bloc/viewConfig/view_config_state.dart';
-import 'package:smirror_app/objectbox/view_store.dart';
+import 'package:smirror_app/database/view_store.dart';
 import 'package:smirror_app/services/user_service.dart';
 
 class ViewConfigBloc extends Bloc<ViewConfigEvent, ViewConfigState> {

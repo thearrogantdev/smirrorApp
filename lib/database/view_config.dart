@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:smirror_app/objectbox/device.dart';
+import 'package:smirror_app/database/device.dart';
 import 'relations_compatibility.dart';
 
 class UserEntity {
@@ -17,6 +17,7 @@ class ViewEntity {
   int timestamp;
   String language;
   int theme;
+  bool dirty;
   final pages = ToMany<PageEntity>();
 
   ViewEntity({
@@ -26,6 +27,7 @@ class ViewEntity {
     this.language = '',
     this.theme = 0,
     this.backendId = 0,
+    this.dirty = false,
   });
 }
 

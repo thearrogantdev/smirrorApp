@@ -1,4 +1,4 @@
-import 'package:smirror_app/objectbox/home_dashboard.dart';
+import 'package:smirror_app/database/home_dashboard.dart';
 
 abstract class HAState {}
 
