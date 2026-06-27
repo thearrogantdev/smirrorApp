@@ -9,8 +9,8 @@ class SessionContextCubit extends Cubit<int> {
   late final StreamSubscription<void> _sub;
   final _session = GetIt.I<SessionContextService>();
 
-  SessionContextCubit() : super(GetIt.I<SessionContextService>().rights) {
-    _sub = _session.onChange.listen((_) => emit(_session.rights));
+  SessionContextCubit() : super(0) {
+    _sub = _session.onChange.listen((_) => emit(state + 1));
   }
 
   @override

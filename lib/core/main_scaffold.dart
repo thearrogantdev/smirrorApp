@@ -13,15 +13,9 @@ import 'package:smirror_app/screens/device_connection_dialog.dart';
 import 'package:smirror_app/models/device_connection.dart';
 import 'package:smirror_app/l10n/app_localizations.dart';
 import 'change_password_dialog.dart';
-import 'package:smirror_wire/generated/back_app_back_app_generated.dart' as backmsg;
-import 'package:smirror_wire/generated/app_back_app_back_generated.dart' as appmsg;
-import 'package:smirror_app/bloc/backendConnection/back_app_websocket_bloc.dart';
-import 'package:smirror_app/bloc/backendConnection/back_app_websocket_state.dart';
-import 'package:smirror_app/bloc/backendConnection/app_websocket_bloc.dart';
-import 'package:smirror_app/bloc/backendConnection/app_websocket_event.dart';
 import 'package:smirror_app/dialogs/login_dialog.dart';
-import 'package:smirror_app/dialogs/initial_setup_dialog.dart';
 import 'package:smirror_app/screens/landing_screen.dart';
+import 'backend_response_listener.dart';
 
 import 'user_scaffold.dart';
 import 'admin_scaffold.dart';
@@ -37,11 +31,10 @@ class MainScaffold extends StatefulWidget {
 class _MainScaffoldState extends State<MainScaffold> {
   final _session = GetIt.I<SessionContextService>();
   StreamSubscription<void>? _upgradeSub;
+  StreamSubscription<void>? _conflictSub;
   StreamSubscription<WsStatus>? _statusSub;
   StreamSubscription<User?>? _userSub;
   bool _hasConnectedOnce = false;
-  bool _setupDialogShown = false;
-  String? _shownUpdateMessage;
 
   @override
   void initState() {
@@ -49,6 +42,10 @@ class _MainScaffoldState extends State<MainScaffold> {
     final ws = GetIt.I<WebSocketService>();
     _upgradeSub = ws.upgradeRequired$.listen((_) {
       if (mounted) _showUpgradeDialog();
+    });
+
+    _conflictSub = ws.conflictDetected$.listen((_) {
+      if (mounted) _showConflictDialog();
     });
 
     _statusSub = ws.status$.listen((status) {
@@ -66,9 +63,6 @@ class _MainScaffoldState extends State<MainScaffold> {
           _hasConnectedOnce = false;
         });
       }
-      if (user?.username != 'admin') {
-        _setupDialogShown = false;
-      }
     });
 
     if (ws.statusValue == WsStatus.connected) {
@@ -79,6 +73,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   @override
   void dispose() {
     _upgradeSub?.cancel();
+    _conflictSub?.cancel();
     _statusSub?.cancel();
     _userSub?.cancel();
     super.dispose();
@@ -102,51 +97,14 @@ class _MainScaffoldState extends State<MainScaffold> {
     );
   }
 
-  String? _buildUpdateAvailableMessage(
-    AppLocalizations loc,
-    backmsg.WelcomeMessageT welcomeMessage,
-  ) {
-    final updateAvailable = welcomeMessage.updateAvailable;
-    if (updateAvailable == null) {
-      return null;
-    }
-
-    final frontendVersion = updateAvailable.versionFrontend?.trim() ?? '';
-    final backendVersion = updateAvailable.versionBackend?.trim() ?? '';
-    final webappVersion = updateAvailable.versionWebapp?.trim() ?? '';
-    final lines = <String>[
-      if (frontendVersion.isNotEmpty)
-        loc.welcomeFrontendUpdateAvailable(frontendVersion),
-      if (backendVersion.isNotEmpty)
-        loc.welcomeBackendUpdateAvailable(backendVersion),
-      if (webappVersion.isNotEmpty)
-        loc.welcomeWebappUpdateAvailable(webappVersion),
-    ];
-
-    if (lines.isEmpty) {
-      return null;
-    }
-
-    lines.add('');
-    lines.add(loc.welcomeUpdateAvailableAction);
-    return lines.join('\n');
-  }
-
-  Future<void> _showUpdateAvailableDialog(
-    BuildContext context,
-    String message,
-  ) async {
-    if (_shownUpdateMessage == message) {
-      return;
-    }
-    _shownUpdateMessage = message;
-
+  void _showConflictDialog() {
     final loc = AppLocalizations.of(context)!;
-    await showDialog<void>(
+    showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: Text(loc.welcomeUpdateAvailableTitle),
-        content: Text(message),
+        title: Text(loc.conflictDialogTitle),
+        content: Text(loc.conflictDialogMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -160,115 +118,8 @@ class _MainScaffoldState extends State<MainScaffold> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SessionContextCubit, int>(
-      builder: (context, rights) {
-        return MultiBlocListener(
-          listeners: [
-            BlocListener<BackAppWebSocketBloc, BackAppWebSocketState>(
-              listener: (context, state) {
-                if (state is BackAppWebSocketResultReceived) {
-                  _handleBackendResult(context, state.result);
-                }
-
-                if (state is BackAppWebSocketWelcomeReceived) {
-                  final deviceName = state.welcomeMessage.deviceName;
-                  final currentUsername =
-                      GetIt.I<UserService>().currentUser?.username;
-                  if (deviceName == 'default' && currentUsername == 'admin') {
-                    // Automatically request admin info to get settings (autoSwitch) and trigger the dialog
-                    context.read<AppWebSocketBloc>().add(
-                      AppWebSocketSendSimpleCommandRequested(
-                        commandType: appmsg.AppSimpleCommandType.GET_ADMIN_INFO,
-                      ),
-                    );
-                  }
-
-                  final loc = AppLocalizations.of(context)!;
-                  if (state.needUpdate) {
-                    if (state.viewId == 0 || !state.isDirty) {
-                      context.read<AppWebSocketBloc>().add(
-                        AppWebSocketSendSimpleCommandRequested(
-                          commandType:
-                              appmsg.AppSimpleCommandType.GET_CURRENT_USER_VIEW,
-                        ),
-                      );
-
-                      final updateMessage = _buildUpdateAvailableMessage(
-                        loc,
-                        state.welcomeMessage,
-                      );
-                      if (updateMessage != null) {
-                        _showUpdateAvailableDialog(context, updateMessage);
-                      }
-                    } else {
-                      final updateMessage = _buildUpdateAvailableMessage(
-                        loc,
-                        state.welcomeMessage,
-                      );
-                      showDialog<bool>(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (context) => AlertDialog(
-                          title: Text(loc.syncAvailableTitle),
-                          content: Text(loc.syncAvailableMessage),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: Text(loc.cancel),
-                            ),
-                            ElevatedButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: Text(loc.update),
-                            ),
-                          ],
-                        ),
-                      ).then((confirmed) {
-                        if (confirmed == true && context.mounted) {
-                          context.read<AppWebSocketBloc>().add(
-                            AppWebSocketSendSimpleCommandRequested(
-                              commandType: appmsg
-                                  .AppSimpleCommandType
-                                  .GET_CURRENT_USER_VIEW,
-                            ),
-                          );
-                        }
-
-                        if (updateMessage != null && context.mounted) {
-                          _showUpdateAvailableDialog(context, updateMessage);
-                        }
-                      });
-                    }
-                  } else {
-                    final updateMessage = _buildUpdateAvailableMessage(
-                      loc,
-                      state.welcomeMessage,
-                    );
-                    if (updateMessage != null) {
-                      _showUpdateAvailableDialog(context, updateMessage);
-                    }
-                  }
-                }
-
-                if (state is BackAppWebSocketGotAdminInfo) {
-                  final deviceName = state.info.deviceName;
-                  final currentUsername =
-                      GetIt.I<UserService>().currentUser?.username;
-
-                  if (deviceName == 'default' &&
-                      currentUsername == 'admin' &&
-                      !_setupDialogShown) {
-                    _setupDialogShown = true;
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) => InitialSetupDialog(
-                        initialAutoSwitch: state.info.autoSwitch,
-                      ),
-                    );
-                  }
-                }
-              },
-            ),
-          ],
+      builder: (context, _) {
+        return BackendResponseListener(
           child: Builder(
             builder: (context) {
               // Show LandingScreen if we haven't successfully connected since startup
@@ -286,135 +137,6 @@ class _MainScaffoldState extends State<MainScaffold> {
         );
       },
     );
-  }
-
-  void _handleBackendResult(BuildContext context, backmsg.ResultT result) {
-    final loc = AppLocalizations.of(context);
-    if (loc == null) return;
-
-    String? message;
-    bool isSuccess = false;
-
-    switch (result.errorCode) {
-      case backmsg.ErrorCode.OK:
-        if (result.success) {
-          isSuccess = true;
-          // For generic OK, we only show a snackbar if there is an explicit message
-          // or if it's a known success case. Otherwise it might be too noisy.
-          if (result.errorMessage != null && result.errorMessage!.isNotEmpty) {
-            message = result.errorMessage;
-          }
-        }
-        break;
-      case backmsg.ErrorCode.UNKNOWN_ERROR:
-        message = loc.errorUnknown;
-        break;
-      case backmsg.ErrorCode.INVALID_CREDENTIALS:
-        message = loc.errorInvalidCredentials;
-        break;
-      case backmsg.ErrorCode.CONFIG_ERROR:
-        message = loc.errorConfigError;
-        break;
-      case backmsg.ErrorCode.INVALID_MESSAGE:
-        message = loc.errorInvalidMessage;
-        break;
-      case backmsg.ErrorCode.ADD_TOKEN:
-        if (result.success) {
-          message = loc.adminTokenAddSuccess;
-          isSuccess = true;
-        } else {
-          message = loc.errorAddToken;
-        }
-        break;
-      case backmsg.ErrorCode.FACE_TRAINING_SUCCESS:
-        message = loc.errorFaceTrainingSuccess;
-        isSuccess = true;
-        break;
-      case backmsg.ErrorCode.FACE_TRAINING_FAILED:
-        message = loc.errorFaceTrainingFailed;
-        break;
-      case backmsg.ErrorCode.ADD_CREATE_USER_SUCCESS:
-        message = loc.errorAddCreateUserSuccess;
-        isSuccess = true;
-        break;
-      case backmsg.ErrorCode.ADD_CREATE_USER_FAILED:
-        message = loc.errorAddCreateUserFailed;
-        break;
-      case backmsg.ErrorCode.UNAUTHORIZED:
-        message = loc.errorUnauthorized;
-        break;
-      case backmsg.ErrorCode.SERVICE_NOT_AVAILABLE:
-        message = loc.errorServiceNotAvailable;
-        break;
-      case backmsg.ErrorCode.PASSWORD_CHANGE_SUCCESS:
-        message = loc.passwordChangeSuccess;
-        isSuccess = true;
-        break;
-      case backmsg.ErrorCode.PASSWORD_CHANGE_FAIL:
-        message = loc.passwordChangeError;
-        break;
-      case backmsg.ErrorCode.FRONTEND_UPDATED:
-        message = loc.errorFrontendUpdated;
-        isSuccess = true;
-        break;
-      case backmsg.ErrorCode.BACKEND_UPDATED:
-        message = loc.errorBackendUpdated;
-        isSuccess = true;
-        break;
-      case backmsg.ErrorCode.UPDATED_FAILED:
-        message = loc.errorUpdateFailed;
-        break;
-      case backmsg.ErrorCode.DASHBOARD_OK:
-        message = loc.dashboardUploadSuccess;
-        isSuccess = true;
-        break;
-      case backmsg.ErrorCode.DASHBOARD_ERROR:
-        message = loc.dashboardUploadError;
-        break;
-      case backmsg.ErrorCode.VIEW_OK:
-        message = loc.viewUploadSuccess;
-        isSuccess = true;
-        break;
-      case backmsg.ErrorCode.VIEW_ERROR:
-        message = loc.viewUploadError;
-        break;
-      default:
-        break;
-    }
-
-    if (message != null) {
-      final showSubtitle = result.errorMessage != null &&
-          result.errorMessage!.isNotEmpty &&
-          result.errorMessage != message;
-
-      ScaffoldMessenger.of(context).removeCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                message,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              if (showSubtitle)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4.0),
-                  child: Text(
-                    result.errorMessage!,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white70,
-                        ),
-                  ),
-                ),
-            ],
-          ),
-          backgroundColor: isSuccess ? Colors.green : Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
   }
 }
 

@@ -14,6 +14,7 @@ import 'package:injectable/injectable.dart' as _i526;
 import 'package:smirror_app/database/home_assistant_store.dart' as _i692;
 import 'package:smirror_app/database/view_store.dart' as _i364;
 import 'package:smirror_app/router/app_router.dart' as _i339;
+import 'package:smirror_app/services/backend_http_proxy_service.dart' as _i295;
 import 'package:smirror_app/services/binary_transfer_repository.dart' as _i321;
 import 'package:smirror_app/services/google_token_service.dart' as _i753;
 import 'package:smirror_app/services/home_assistant_api_service.dart' as _i1058;
@@ -63,6 +64,9 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i252.SessionContextService(),
     );
     gh.lazySingleton<_i904.WebSocketService>(() => _i904.WebSocketService());
+    gh.lazySingleton<_i295.BackendHttpProxyService>(
+      () => _i295.BackendHttpProxyService(gh<_i904.WebSocketService>()),
+    );
     return this;
   }
 }

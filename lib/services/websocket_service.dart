@@ -80,10 +80,15 @@ class WebSocketService {
   bool _authRejected = false;
   // If we received a 426 during handshake, stop retrying
   bool _upgradeRejected = false;
+  // If we were disconnected because another app connected as the same user, stop retrying
+  bool _conflictRejected = false;
 
 
   final _upgradeRequired = StreamController<void>.broadcast();
   Stream<void> get upgradeRequired$ => _upgradeRequired.stream;
+
+  final _conflictDetected = StreamController<void>.broadcast();
+  Stream<void> get conflictDetected$ => _conflictDetected.stream;
 
   // A "ready" completer that completes when connected (replaced on disconnect)
   Completer<void>? _readyCompleter;
@@ -549,7 +554,7 @@ class WebSocketService {
 
   Future<void> _connectLoop() async {
     final sessionId = _connectionSessionId;
-    if (_isDisposed || _authRejected || _upgradeRejected) return;
+    if (_isDisposed || _authRejected || _upgradeRejected || _conflictRejected) return;
     if (sessionId != _connectionSessionId) return;
 
     if (_version.isEmpty) {
@@ -704,7 +709,7 @@ class WebSocketService {
 
   Future<void> _runBackgroundRetryLoop() async {
     final sessionId = _connectionSessionId;
-    if (_isDisposed || _authRejected || _upgradeRejected || _channel != null) return;
+    if (_isDisposed || _authRejected || _upgradeRejected || _conflictRejected || _channel != null) return;
     if (sessionId != _connectionSessionId) return;
 
     _setStatus(WsStatus.reconnecting);
@@ -712,6 +717,7 @@ class WebSocketService {
     while (!_isDisposed &&
         !_authRejected &&
         !_upgradeRejected &&
+        !_conflictRejected &&
         _channel == null &&
         sessionId == _connectionSessionId) {
       try {
@@ -878,6 +884,7 @@ class WebSocketService {
     // Clear the 401 lock so we attempt again with new creds
     _authRejected = false;
     _upgradeRejected = false;
+    _conflictRejected = false;
 
     // Force close any existing socket so headers are used next time (fire-and-forget)
     _closeCurrentConnection();
@@ -911,6 +918,7 @@ class WebSocketService {
   Future<void> reconnect() async {
     _authRejected = false; // allow retry with existing creds
     _upgradeRejected = false;
+    _conflictRejected = false;
 
     // Close the old connection aggressively (fire-and-forget)
     _closeCurrentConnection();
@@ -953,6 +961,9 @@ class WebSocketService {
   }
 
   void _handleDisconnect() {
+    final closeCode = _channel?.closeCode;
+    final isConflict = closeCode == 1008;
+
     _subscription?.cancel();
     _subscription = null;
     _channel = null;
@@ -965,7 +976,13 @@ class WebSocketService {
       return;
     }
 
-
+    if (isConflict) {
+      _conflictRejected = true;
+      _setStatus(WsStatus.unauthorized);
+      _conflictDetected.add(null);
+      _userService.changeUser(null);
+      return;
+    }
 
     if (_authRejected) {
       // Stay disconnected until creds change
@@ -1014,5 +1031,6 @@ class WebSocketService {
     await _incoming.close();
     await _status.close();
     await _upgradeRequired.close();
+    await _conflictDetected.close();
   }
 }

@@ -501,5 +501,9 @@
   "dashboardUploadSuccess": "Dashboard uploaded successfully.",
   "dashboardUploadError": "Failed to upload dashboard.",
   "viewUploadSuccess": "View layout uploaded successfully.",
-  "viewUploadError": "Failed to upload view layout."
+  "viewUploadError": "Failed to upload view layout.",
+  "conflictDialogTitle": "Session Conflict",
+  "conflictDialogMessage": "Another app connected as the same user. You have been disconnected.",
+  "dashboardUpdatedNotification": "Dashboard updated automatically",
+  "viewUpdatedNotification": "View layout updated automatically"
 }

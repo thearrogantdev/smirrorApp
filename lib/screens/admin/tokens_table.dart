@@ -173,8 +173,10 @@ class _TokensTableState extends State<TokensTable> {
   Widget _buildTokenRow(String providerName, String providerId,
       TokenProvider providerRepo, VoidCallback onEdit) {
     final theme = Theme.of(context);
-    final currentUserId = GetIt.I<UserService>().currentUser?.localUserId;
-    final adminHasToken = widget.userTokens[currentUserId]?.any(
+    final currentUsername = GetIt.I<UserService>().currentUser?.username;
+    final adminUser = widget.users.where((u) => u.name == currentUsername).firstOrNull;
+    final adminBackendId = adminUser?.userId.toInt();
+    final adminHasToken = widget.userTokens[adminBackendId]?.any(
           (t) => t.toLowerCase() == providerId.toLowerCase(),
         ) ??
         false;
@@ -234,8 +236,8 @@ class _TokensTableState extends State<TokensTable> {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text('Assign to user:', style: theme.textTheme.bodySmall),
-                    ...widget.users
-                        .where((u) => u.name != "admin" && u.name != "guest" && u.userId != 1) // current user is admin user
+                      ...widget.users
+                          .where((u) => u.name != "admin" && u.name != "guest" && u.name != currentUsername) // current user is admin user
                         .map((u) {
                       final usersTokens =
                           widget.userTokens[u.userId.toInt()] ?? [];

@@ -448,6 +448,15 @@ class HomeAssistantStore {
     return controller.stream;
   }
 
+  Future<void> updateDashboardBackgroundPath(int backgroundImageId, String localPath) async {
+    for (final d in _dashboards) {
+      if (d.backgroundImageId == backgroundImageId) {
+        d.backgroundImagePath = localPath;
+        saveDashboard(d);
+      }
+    }
+  }
+
   void dispose() {
     _dashboardsController.close();
     for (final list in _itemsControllers.values) {

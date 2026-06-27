@@ -2329,6 +2329,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to upload view layout.'**
   String get viewUploadError;
+
+  /// No description provided for @conflictDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Session Conflict'**
+  String get conflictDialogTitle;
+
+  /// No description provided for @conflictDialogMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Another app connected as the same user. You have been disconnected.'**
+  String get conflictDialogMessage;
+
+  /// No description provided for @dashboardUpdatedNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard updated automatically'**
+  String get dashboardUpdatedNotification;
+
+  /// No description provided for @viewUpdatedNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'View layout updated automatically'**
+  String get viewUpdatedNotification;
 }
 
 class _AppLocalizationsDelegate

@@ -1,6 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:smirror_app/bloc/session_context_cubit.dart';
 import 'package:smirror_app/services/session_context_service.dart';
 import 'main_scaffold_navigation.dart';
 import 'responsive.dart';
@@ -90,6 +92,7 @@ class _AdminScaffoldState extends State<AdminScaffold> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<SessionContextCubit>();
     final navTree = _visibleTree();
     final filteredRoutes = NavigationConfig.getFlatRoutes(navTree);
 

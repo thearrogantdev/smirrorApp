@@ -51,6 +51,7 @@ class SessionContextService {
   int get rights => _rights;
 
   bool get canReadLogs => hasPermission(Permission.ReadLogs);
+  bool get canViewLivecam => hasPermission(Permission.ViewLivecam);
   bool get isAdmin => hasPermission(Permission.Admin);
 
   // ── Device Name ────────────────────────────────────────────────────────────

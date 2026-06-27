@@ -103,9 +103,10 @@ class BackAppWebSocketGotFrame extends BackAppWebSocketState {
 
 class BackAppWebSocketDashboardSynced extends BackAppWebSocketState {
   final int backendId;
-  BackAppWebSocketDashboardSynced(this.backendId);
+  final bool isUserInitiated;
+  BackAppWebSocketDashboardSynced(this.backendId, {this.isUserInitiated = false});
   @override
-  List<Object?> get props => [backendId];
+  List<Object?> get props => [backendId, isUserInitiated];
 }
 
 class BackAppWebSocketVerificationCodeReceived extends BackAppWebSocketState {
@@ -121,3 +122,11 @@ class BackAppWebSocketGotTomlConfig extends BackAppWebSocketState {
   @override
   List<Object?> get props => [tomlConfig];
 }
+
+class BackAppWebSocketProxyResponseReceived extends BackAppWebSocketState {
+  final backmsg.ProxyHttpResponseT response;
+  BackAppWebSocketProxyResponseReceived(this.response);
+  @override
+  List<Object?> get props => [response];
+}
+

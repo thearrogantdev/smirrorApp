@@ -1214,4 +1214,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get viewUploadError => 'Fehler beim Hochladen des Layouts.';
+
+  @override
+  String get conflictDialogTitle => 'Sitzungskonflikt';
+
+  @override
+  String get conflictDialogMessage =>
+      'Eine andere App hat sich mit demselben Benutzer angemeldet. Die Verbindung wurde getrennt.';
+
+  @override
+  String get dashboardUpdatedNotification =>
+      'Dashboard automatisch aktualisiert';
+
+  @override
+  String get viewUpdatedNotification =>
+      'Ansichtslayout automatisch aktualisiert';
 }

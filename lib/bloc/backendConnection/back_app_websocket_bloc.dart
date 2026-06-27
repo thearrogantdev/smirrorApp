@@ -1,6 +1,10 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flat_buffers/flat_buffers.dart' as fb;
+import 'package:smirror_app/services/binary_saver.dart'
+    if (dart.library.js_interop) 'package:smirror_app/services/binary_saver_web.dart'
+    if (dart.library.io) 'package:smirror_app/services/binary_saver_native.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:smirror_app/database/home_dashboard.dart';
@@ -16,12 +20,13 @@ import 'package:smirror_wire/generated/frame_frame_data_generated.dart'
 import 'package:smirror_wire/generated/view_view_structure_generated.dart' as vs;
 import 'package:smirror_app/database/home_assistant_store.dart';
 import 'package:smirror_app/database/view_store.dart';
+import 'package:smirror_app/database/binary_database.dart';
 import 'package:smirror_app/database/view_structor_mapper.dart';
 import 'package:smirror_app/services/binary_transfer_repository.dart';
 import 'package:smirror_app/services/google_token_service.dart';
-import 'package:smirror_app/services/path_service.dart';
 import 'package:smirror_app/services/session_context_service.dart';
 import 'package:smirror_app/services/user_service.dart';
+import 'package:smirror_app/services/backend_http_proxy_service.dart';
 import 'back_app_websocket_state.dart';
 
 class BackAppWebSocketBloc extends Cubit<BackAppWebSocketState> {
@@ -34,6 +39,13 @@ class BackAppWebSocketBloc extends Cubit<BackAppWebSocketState> {
 
   // Accumulates chunks for in-progress incoming transfers
   final _incoming = <int, _BinaryReceiveBuffer>{};
+
+  // Track dashboard updates that were explicitly requested/initiated by the user
+  final Set<int> _userInitiatedDashboardUpdates = {};
+
+  void registerUserInitiatedDashboardUpdate(int backendId) {
+    _userInitiatedDashboardUpdates.add(backendId);
+  }
 
   BackAppWebSocketBloc() : super(BackAppWebSocketInitial()) {
     _listen();
@@ -108,7 +120,18 @@ class BackAppWebSocketBloc extends Cubit<BackAppWebSocketState> {
           dashboard.name = remoteDash.name ?? dashboard.name;
           dashboard.timestamp = remoteDash.timestamp.toInt();
           dashboard.backgroundImageId = dashboardDataT.backgroundImageId;
-          dashboard.backgroundImagePath = null; //TODO: get the image locally and add the path here
+          final bgId = dashboardDataT.backgroundImageId;
+          if (bgId != 0) {
+            final localPath = await GetIt.I<BinaryDatabase>().getBinaryPath(bgId);
+            if (localPath != null && localPath.isNotEmpty && (kIsWeb || await File(localPath).exists())) {
+              dashboard.backgroundImagePath = localPath;
+            } else {
+              dashboard.backgroundImagePath = null;
+              _sendUpdateBinary([bgId]);
+            }
+          } else {
+            dashboard.backgroundImagePath = null;
+          }
           dashboard.width = dashboardDataT.width;
           dashboard.height = dashboardDataT.height;
 
@@ -137,8 +160,9 @@ class BackAppWebSocketBloc extends Cubit<BackAppWebSocketState> {
             return item;
           }).toList();
 
+          final isUserInitiated = _userInitiatedDashboardUpdates.remove(backendId);
           haStore.saveDashboardWithItems(dashboard, newItems);
-          emit(BackAppWebSocketDashboardSynced(backendId));
+          emit(BackAppWebSocketDashboardSynced(backendId, isUserInitiated: isUserInitiated));
           break;
 
         case backmsg.BackAppPayloadTypeId.dashboardStructure_AllDashboardInfo:
@@ -185,10 +209,17 @@ class BackAppWebSocketBloc extends Cubit<BackAppWebSocketState> {
             deviceId: viewStore.currentDeviceId ?? 0,
           );
 
-          // Filter out IDs we already have on disk
-          final missingIds = allIds
-              .where((id) => repo.peekPath(id) == null)
-              .toList();
+          // Check if binary exists locally by checking the new database.
+          // If it exists, use the path locally; if not, ask the backend.
+          final missingIds = <int>[];
+          for (final id in allIds) {
+            final localPath = await GetIt.I<BinaryDatabase>().getBinaryPath(id);
+            if (localPath != null && localPath.isNotEmpty && (kIsWeb || await File(localPath).exists())) {
+              await viewStore.updateBinaryPath(id, localPath);
+            } else {
+              missingIds.add(id);
+            }
+          }
 
           if (missingIds.isNotEmpty) {
             _sendUpdateBinary(missingIds);
@@ -213,6 +244,8 @@ class BackAppWebSocketBloc extends Cubit<BackAppWebSocketState> {
               final path = await _writeBinary(binary.fileName ?? '$tid', data);
               repo.ingestPaths({tid: path});
               await viewStore.updateBinaryPath(binary.binaryIndex, path);
+              await GetIt.I<BinaryDatabase>().insertBinary(binary.binaryIndex, path);
+              await haStore.updateDashboardBackgroundPath(binary.binaryIndex, path);
               await _sendResultToBackend(
                 tid,
                 backmsg.ErrorCode.BINARY_COMPLETE,
@@ -249,6 +282,8 @@ class BackAppWebSocketBloc extends Cubit<BackAppWebSocketState> {
               final path = await _writeBinary(buf.fileName, assembled);
               repo.ingestPaths({tid: path});
               await viewStore.updateBinaryPath(binary.binaryIndex, path);
+              await GetIt.I<BinaryDatabase>().insertBinary(binary.binaryIndex, path);
+              await haStore.updateDashboardBackgroundPath(binary.binaryIndex, path);
               await _sendResultToBackend(
                 tid,
                 backmsg.ErrorCode.BINARY_COMPLETE,
@@ -329,6 +364,13 @@ class BackAppWebSocketBloc extends Cubit<BackAppWebSocketState> {
           emit(BackAppWebSocketGotTomlConfig(tomlConfig));
           break;
 
+        case backmsg.BackAppPayloadTypeId.ProxyHttpResponse:
+          final response = (rawMessage.payload as backmsg.ProxyHttpResponse).unpack();
+          GetIt.I<BackendHttpProxyService>().handleResponse(response);
+          emit(BackAppWebSocketProxyResponseReceived(response));
+          break;
+
+
         default:
           emit(
             BackAppWebSocketUnknownPayload(message.payloadType?.value ?? -1),
@@ -337,16 +379,6 @@ class BackAppWebSocketBloc extends Cubit<BackAppWebSocketState> {
       }
     }, onError: (err) => emit(BackAppWebSocketFailure(err.toString())));
   }
-
-  /// Deserializes the opaque dashboard blob back into FlatBuffers item objects.
-  // List<dash.DashboardItem> _deserializeDashboardItems(List<int>? data) {
-  //   if (data == null || data.isEmpty) return const [];
-  //   final buffer = data is Uint8List ? data : Uint8List.fromList(data);
-  //   final bufferContext = fb.BufferContext.fromBytes(buffer);
-  //   return const fb.ListReader<dash.DashboardItem>(
-  //     dash.DashboardItem.reader,
-  //   ).read(bufferContext, 0);
-  // }
 
   void _sendUpdateBinary(List<int> ids) {
     final b = fb.Builder(initialSize: 64 + ids.length * 8);
@@ -376,12 +408,7 @@ class BackAppWebSocketBloc extends Cubit<BackAppWebSocketState> {
   }
 
   Future<String> _writeBinary(String fileName, Uint8List data) async {
-    final directory = await GetIt.I<PathService>().getRootDir();
-    final dir = Directory('$directory/binaries');
-    if (!await dir.exists()) await dir.create(recursive: true);
-    final file = File('${dir.path}/$fileName');
-    await file.writeAsBytes(data, flush: true);
-    return file.path;
+    return saveBinaryData(fileName, data);
   }
 
   void sendGetScreenshot() {

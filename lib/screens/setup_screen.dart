@@ -5,6 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get_it/get_it.dart';
 import 'package:smirror_app/database/view_store.dart';
 import 'package:smirror_app/database/home_assistant_store.dart';
+import 'package:smirror_app/database/database.dart';
+import 'package:smirror_app/database/binary_database.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:smirror_app/services/path_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +16,7 @@ import 'package:smirror_app/bloc/setup_cubit.dart';
 import 'package:smirror_app/l10n/app_localizations.dart';
 import 'package:restart_app/restart_app.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:smirror_app/services/web_database_cleaner.dart';
 
 @RoutePage()
 class SetupScreen extends StatefulWidget {
@@ -92,14 +96,59 @@ class _SetupScreenState extends State<SetupScreen> {
       GetIt.I<ViewStore>().dispose();
       GetIt.I<HomeAssistantStore>().dispose();
 
-      final String directory = await GetIt.I<PathService>().getRootDir();
-      final vsDir = Directory('$directory/objectbox_vs');
-      if (vsDir.existsSync()) {
-        vsDir.deleteSync(recursive: true);
-      }
-      final haDir = Directory('$directory/objectbox_ha');
-      if (haDir.existsSync()) {
-        haDir.deleteSync(recursive: true);
+      // Close Drift databases cleanly
+      try {
+        await GetIt.I<BinaryDatabase>().close();
+      } catch (_) {}
+      try {
+        if (GetIt.I.isRegistered<AppDatabase>()) {
+          await GetIt.I<AppDatabase>().close();
+        }
+      } catch (_) {}
+      try {
+        if (GetIt.I.isRegistered<AppDatabase>(instanceName: 'global')) {
+          await GetIt.I<AppDatabase>(instanceName: 'global').close();
+        }
+      } catch (_) {}
+
+      if (kIsWeb) {
+        await cleanWebDatabases();
+      } else {
+        // Delete binaries directory
+        final String directory = await GetIt.I<PathService>().getRootDir();
+        final binariesDir = Directory('$directory/binaries');
+        if (binariesDir.existsSync()) {
+          try {
+            binariesDir.deleteSync(recursive: true);
+          } catch (_) {}
+        }
+
+        // Delete any drift database files
+        final directoriesToClean = <Directory>[];
+        try {
+          directoriesToClean.add(await getApplicationSupportDirectory());
+        } catch (_) {}
+        try {
+          directoriesToClean.add(await getApplicationDocumentsDirectory());
+        } catch (_) {}
+
+        for (final dir in directoriesToClean) {
+          if (dir.existsSync()) {
+            try {
+              final List<FileSystemEntity> files = dir.listSync();
+              for (final file in files) {
+                if (file is File) {
+                  final name = file.uri.pathSegments.last;
+                  if (name.startsWith('smirror')) {
+                    try {
+                      file.deleteSync();
+                    } catch (_) {}
+                  }
+                }
+              }
+            } catch (_) {}
+          }
+        }
       }
 
       final prefs = await SharedPreferences.getInstance();

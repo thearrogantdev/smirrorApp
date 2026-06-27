@@ -58,7 +58,7 @@ class NavigationConfig {
         icon: Icons.screenshot,
         label: (l) => l.screenshot,
         route: const FrameRoute(),
-        visibleWhen: (s) => s.hasCamera,
+        visibleWhen: (s) => s.hasCamera && s.canViewLivecam,
       ),
       NavItem(
         icon: Icons.article,

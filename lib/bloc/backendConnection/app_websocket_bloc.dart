@@ -10,6 +10,7 @@ import 'package:smirror_wire/generated/dashboard_dashboard_structure_generated.d
     as dash;
 import 'package:smirror_app/database/home_assistant_store.dart';
 import 'package:smirror_app/database/view_store.dart';
+import 'package:smirror_app/database/binary_database.dart';
 import 'package:smirror_app/services/binary_transfer_repository.dart';
 import 'package:smirror_app/bloc/viewConfig/view_config_models.dart';
 import 'package:smirror_wire/constants/widget_ids.dart';
@@ -138,9 +139,10 @@ class AppWebSocketBloc extends Bloc<AppWebSocketEvent, AppWebSocketState> {
         );
         final m = RegExp(r'id=(\d+)').firstMatch(result.errorMessage ?? '');
         final newId = m != null ? int.tryParse(m.group(1)!) : 0;
-        if (newId != null) {
+        if (newId != null && newId != 0) {
           propId.intValue = newId;
           ids.add(newId);
+          await GetIt.I<BinaryDatabase>().insertBinary(newId, localPath);
           // is used by the ui to show the progress and to save the changed id
           emit(AppWebSocketBinaryCompletedForItem(widget, index));
         }
@@ -285,6 +287,7 @@ class AppWebSocketBloc extends Bloc<AppWebSocketEvent, AppWebSocketState> {
             newId,
           ], timeout: const Duration(seconds: 10));
           backgroundPath = pathes[newId] ?? "";
+          await GetIt.I<BinaryDatabase>().insertBinary(newId, dashboard.backgroundImagePath!);
           dashboard.backgroundImageId = newId;
           _haStore.saveDashboard(
             dashboard,

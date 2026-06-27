@@ -21,9 +21,9 @@ class UsersTable extends StatelessWidget {
   final void Function(backmsg.UserInfoT user) onDeleteUser;
   final VoidCallback onAddUser;
 
-  static bool _isProtected(int userId) {
-    final currentUserId = GetIt.I<UserService>().currentUser?.localUserId;
-    return userId == currentUserId; // current is Admin
+  static bool _isProtected(backmsg.UserInfoT user) {
+    final currentUsername = GetIt.I<UserService>().currentUser?.username;
+    return user.name == currentUsername;
   }
 
   // All permissions we want to show as columns
@@ -93,7 +93,7 @@ class UsersTable extends StatelessWidget {
                       ),
                     ),
                     ..._permissions.map((p) {
-                      final isProtected = _isProtected(user.userId.toInt());
+                      final isProtected = _isProtected(user);
                       final hasPermission = (user.rights & p.value) != 0;
                       return DataCell(
                         Tooltip(
@@ -137,8 +137,8 @@ class DeleteButton extends StatelessWidget {
   final AppLocalizations l10n;
 
   bool get _isProtected {
-    final currentUserId = GetIt.I<UserService>().currentUser?.localUserId;
-    return user.userId == currentUserId;
+    final currentUsername = GetIt.I<UserService>().currentUser?.username;
+    return user.name == currentUsername;
   }
 
   Future<void> _confirmDelete(BuildContext context) async {

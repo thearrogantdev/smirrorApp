@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:smirror_app/database/database.dart';
+import 'package:smirror_app/database/binary_database.dart';
 
 import 'injection.config.dart'; // generated
 
@@ -11,5 +12,9 @@ void configureDependencies() {
   final globalDb = AppDatabase('smirror');
   getIt.registerSingleton<AppDatabase>(globalDb, instanceName: 'global');
   getIt.registerSingleton<AppDatabase>(globalDb);
+
+  final binaryDb = BinaryDatabase('smirror_binaries');
+  getIt.registerSingleton<BinaryDatabase>(binaryDb);
+
   getIt.init();
 }

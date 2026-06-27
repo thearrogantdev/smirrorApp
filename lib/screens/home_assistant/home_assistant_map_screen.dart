@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:form_builder_image_picker/form_builder_image_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:get_it/get_it.dart';
 import 'package:smirror_app/bloc/backendConnection/app_websocket_bloc.dart';
 import 'package:smirror_app/bloc/backendConnection/app_websocket_event.dart';
@@ -174,6 +176,13 @@ class _HomeAssistantMapScreenState extends State<HomeAssistantMapScreen> {
               ),
               maxImages: 1,
               previewAutoSizeWidth: true,
+              availableImageSources: const [ImageSourceOption.gallery],
+              onTap: (_) async {
+                final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+                if (pickedFile != null) {
+                  formKey.currentState?.fields['bg']?.didChange([pickedFile]);
+                }
+              },
             ),
           ],
         );
@@ -438,18 +447,23 @@ class _HomeAssistantMapScreenState extends State<HomeAssistantMapScreen> {
                                   children: [
                                     // BACKGROUND IMAGE LAYER
                                     if (currentDashboard.backgroundImagePath !=
-                                        null &&
+                                            null &&
                                         currentDashboard.backgroundImagePath!
                                             .isNotEmpty)
                                       Positioned.fill(
-                                        child: Image.file(
-                                          File(currentDashboard
-                                              .backgroundImagePath!),
-                                          fit: BoxFit.fill,
-                                          // Handle cases where the file might have been deleted from storage
-                                          errorBuilder: (ctx, err, stack) =>
-                                          const SizedBox.shrink(),
-                                        ),
+                                        child: kIsWeb
+                                            ? Image.network(
+                                                currentDashboard.backgroundImagePath!,
+                                                fit: BoxFit.fill,
+                                                errorBuilder: (ctx, err, stack) =>
+                                                    const SizedBox.shrink(),
+                                              )
+                                            : Image.file(
+                                                File(currentDashboard.backgroundImagePath!),
+                                                fit: BoxFit.fill,
+                                                errorBuilder: (ctx, err, stack) =>
+                                                    const SizedBox.shrink(),
+                                              ),
                                       ),
 
                                     // INTERACTIVE CANVAS LAYER
@@ -769,6 +783,7 @@ class _DashboardSyncDialogState extends State<_DashboardSyncDialog> {
                       trailing = TextButton(
                         onPressed: () {
                           setState(() => _syncingIds.add(bid));
+                          context.read<BackAppWebSocketBloc>().registerUserInitiatedDashboardUpdate(bid);
                           context.read<AppWebSocketBloc>().add(
                                 AppWebSocketRequestDashboardUpdate(
                                   dashboardBackendId: bid,
@@ -801,6 +816,7 @@ class _DashboardSyncDialogState extends State<_DashboardSyncDialog> {
                 final bid = info.backendId.toInt();
                 if (!_syncingIds.contains(bid)) {
                   setState(() => _syncingIds.add(bid));
+                  context.read<BackAppWebSocketBloc>().registerUserInitiatedDashboardUpdate(bid);
                   context.read<AppWebSocketBloc>().add(
                         AppWebSocketRequestDashboardUpdate(
                           dashboardBackendId: bid,

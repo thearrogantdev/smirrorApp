@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui' show ImageFilter;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
@@ -182,8 +181,8 @@ class _LandingScreenState extends State<LandingScreen> {
               constraints: const BoxConstraints(maxWidth: 460),
               decoration: BoxDecoration(
                 color: isDark
-                    ? const Color(0xFF1E1E28).withValues(alpha: 0.6)
-                    : Colors.white.withValues(alpha: 0.7),
+                    ? const Color(0xFF1E1E28).withValues(alpha: 0.85)
+                    : Colors.white.withValues(alpha: 0.95),
                 borderRadius: BorderRadius.circular(32),
                 border: Border.all(
                   color: isDark
@@ -199,11 +198,7 @@ class _LandingScreenState extends State<LandingScreen> {
                   ),
                 ],
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(32),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                  child: Padding(
+              child: Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 32,
                       vertical: 44,
@@ -268,8 +263,6 @@ class _LandingScreenState extends State<LandingScreen> {
                       ],
                     ),
                   ),
-                ),
-              ),
             ),
           ),
         ),

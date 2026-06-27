@@ -1199,4 +1199,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get viewUploadError => 'Failed to upload view layout.';
+
+  @override
+  String get conflictDialogTitle => 'Session Conflict';
+
+  @override
+  String get conflictDialogMessage =>
+      'Another app connected as the same user. You have been disconnected.';
+
+  @override
+  String get dashboardUpdatedNotification => 'Dashboard updated automatically';
+
+  @override
+  String get viewUpdatedNotification => 'View layout updated automatically';
 }

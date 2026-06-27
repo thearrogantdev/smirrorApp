@@ -7,8 +7,10 @@ import 'package:smirror_app/bloc/homeAssistant/home_assistant_models.dart';
 import 'package:smirror_wire/generated/dashboard_dashboard_structure_generated.dart';
 import 'package:get_it/get_it.dart';
 import 'package:smirror_app/bloc/backendConnection/app_websocket_event.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:smirror_app/services/token_provider.dart';
 import 'package:smirror_app/services/websocket_service.dart';
+import 'package:smirror_app/services/backend_http_proxy_service.dart';
 import 'package:smirror_wire/generated/back_app_back_app_generated.dart' as backmsg;
 
 enum HAValidationStatus { ok, invalidToken, unreachable, unknownError }
@@ -67,6 +69,33 @@ class HomeAssistantApiService extends TokenProvider<HAValidationResult> {
     _url = url;
   }
 
+  Future<http.Response> _makeRequest({
+    required String url,
+    required String method,
+    Map<String, String>? headers,
+    String? body,
+    required Duration timeout,
+  }) async {
+    if (kIsWeb) {
+      return GetIt.I<BackendHttpProxyService>().request(
+        url: url,
+        method: method,
+        headers: headers,
+        body: body,
+        timeout: timeout,
+      );
+    } else {
+      final uri = Uri.parse(url);
+      if (method.toUpperCase() == 'GET') {
+        return http.get(uri, headers: headers).timeout(timeout);
+      } else if (method.toUpperCase() == 'POST') {
+        return http.post(uri, headers: headers, body: body).timeout(timeout);
+      } else {
+        throw UnimplementedError('HTTP Method $method not supported direct');
+      }
+    }
+  }
+
   /// Implementation of the TokenProvider's abstract method
   @override
   Future<HAValidationResult> validateToken(backmsg.GetTokenT token) async {
@@ -78,12 +107,12 @@ class HomeAssistantApiService extends TokenProvider<HAValidationResult> {
       return const HAValidationResult(HAValidationStatus.unreachable);
     }
     try {
-      final response = await http
-          .get(
-            Uri.parse('$_url/api/config'),
-            headers: {'Authorization': 'Bearer ${token.accessToken}'},
-          )
-          .timeout(const Duration(seconds: 5));
+      final response = await _makeRequest(
+        url: '$_url/api/config',
+        method: 'GET',
+        headers: {'Authorization': 'Bearer ${token.accessToken}'},
+        timeout: const Duration(seconds: 5),
+      );
 
       return response.statusCode == 200
           ? const HAValidationResult(HAValidationStatus.ok)
@@ -114,15 +143,15 @@ class HomeAssistantApiService extends TokenProvider<HAValidationResult> {
         );
       }
 
-      final response = await http
-          .get(
-            Uri.parse('${_url.endsWith('/') ? _url : '$_url/'}api/'),
-            headers: {
-              'Authorization': 'Bearer $accessTokenOrNull',
-              'Content-Type': 'application/json',
-            },
-          )
-          .timeout(const Duration(seconds: 5));
+      final response = await _makeRequest(
+        url: '${_url.endsWith('/') ? _url : '$_url/'}api/',
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer $accessTokenOrNull',
+          'Content-Type': 'application/json',
+        },
+        timeout: const Duration(seconds: 5),
+      );
 
       if (response.statusCode == 200) {
         return const HAValidationResult(HAValidationStatus.ok);
@@ -157,15 +186,15 @@ class HomeAssistantApiService extends TokenProvider<HAValidationResult> {
 
     try {
       final cleanUrl = url.endsWith('/') ? url : '$url/';
-      final response = await http
-          .get(
-            Uri.parse('${cleanUrl}api/'),
-            headers: {
-              'Authorization': 'Bearer $token',
-              'Content-Type': 'application/json',
-            },
-          )
-          .timeout(const Duration(seconds: 7));
+      final response = await _makeRequest(
+        url: '${cleanUrl}api/',
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        timeout: const Duration(seconds: 7),
+      );
 
       if (response.statusCode == 200) {
         return const HAValidationResult(HAValidationStatus.ok);
@@ -223,15 +252,15 @@ class HomeAssistantApiService extends TokenProvider<HAValidationResult> {
     }
 
     // 2. Perform the actual data request
-    final response = await http
-        .get(
-          Uri.parse('$_url/api/states'),
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Content-Type': 'application/json',
-          },
-        )
-        .timeout(const Duration(seconds: 10));
+    final response = await _makeRequest(
+      url: '$_url/api/states',
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      timeout: const Duration(seconds: 10),
+    );
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);

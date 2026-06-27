@@ -468,5 +468,9 @@
   "dashboardUploadSuccess": "Dashboard erfolgreich hochgeladen.",
   "dashboardUploadError": "Fehler beim Hochladen des Dashboards.",
   "viewUploadSuccess": "Layout erfolgreich hochgeladen.",
-  "viewUploadError": "Fehler beim Hochladen des Layouts."
+  "viewUploadError": "Fehler beim Hochladen des Layouts.",
+  "conflictDialogTitle": "Sitzungskonflikt",
+  "conflictDialogMessage": "Eine andere App hat sich mit demselben Benutzer angemeldet. Die Verbindung wurde getrennt.",
+  "dashboardUpdatedNotification": "Dashboard automatisch aktualisiert",
+  "viewUpdatedNotification": "Ansichtslayout automatisch aktualisiert"
 }
