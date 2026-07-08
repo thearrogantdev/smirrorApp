@@ -518,6 +518,24 @@ abstract class AppLocalizations {
   /// **'Two days'**
   String get widgetNameGoogleCalendarNextTwoDay;
 
+  /// No description provided for @widgetNameGoogleTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Tasks'**
+  String get widgetNameGoogleTasks;
+
+  /// No description provided for @googleTasksSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Tasks Settings'**
+  String get googleTasksSettingsTitle;
+
+  /// No description provided for @googleTasksReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Tasks Ready'**
+  String get googleTasksReady;
+
   /// No description provided for @googleCalendarMissingToken.
   ///
   /// In en, this message translates to:

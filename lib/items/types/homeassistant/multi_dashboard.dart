@@ -30,6 +30,40 @@ class HAMultiDashboard extends WidgetTypeDefinition {
   String? get requiredTokenId => 'HomeAssistant';
 
   @override
+  bool get isResizable => false;
+
+  @override
+  Size getSize(ViewConfigItem item) {
+    final bytes =
+        item.properties[PropertyIdsMultiHADashboard.dashboardIds].rawBytes;
+    final ids = _unpackIds(bytes);
+
+    final namesString =
+        item.properties[PropertyIdsMultiHADashboard.dashboardNames].stringValue ?? "";
+    final namesList = namesString.isEmpty ? <String>[] : namesString.split("|||");
+
+    final store = GetIt.I<HomeAssistantStore>();
+    if (ids.isEmpty) {
+      return defaultSize;
+    }
+
+    double maxArea = -1;
+    Size biggestSize = defaultSize;
+
+    for (int i = 0; i < ids.length; i++) {
+      final name = (namesList.length > i) ? namesList[i] : null;
+      final dashboard = store.getOrCreatePlaceholder(ids[i], name);
+      final area = dashboard.width * dashboard.height;
+      if (area > maxArea) {
+        maxArea = area;
+        biggestSize = Size(dashboard.width, dashboard.height);
+      }
+    }
+
+    return biggestSize;
+  }
+
+  @override
   List<ViewConfigProperty> createDefaultProperties() => [
     ViewConfigProperty(
       key: PropertyIdsMultiHADashboard.dashboardIds,

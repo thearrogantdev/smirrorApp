@@ -10,6 +10,7 @@ import 'package:smirror_app/items/types/entertainment/random_useless_fact.dart';
 import 'package:smirror_app/items/types/busStop/bus_stop.dart';
 import 'package:smirror_app/items/types/google/google_calendar_two_days.dart';
 import 'package:smirror_app/items/types/google/google_calendar_upcoming.dart';
+import 'package:smirror_app/items/types/google/google_tasks.dart';
 import 'package:smirror_app/items/types/general/image.dart';
 import 'package:smirror_app/items/types/homeassistant/multi_dashboard.dart';
 import 'package:smirror_app/items/types/homeassistant/single_dashboard.dart';
@@ -43,6 +44,7 @@ class WidgetTypeRegistry {
     SystemUsageWidgetType(),
     RainRadarWidgetType(),
     DigitalClockWidgetType(),
+    GoogleTasksWidget(),
   ];
 
   static final Map<int, WidgetTypeDefinition> _types = {

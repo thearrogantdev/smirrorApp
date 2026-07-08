@@ -28,6 +28,20 @@ class HASingleDashboard extends WidgetTypeDefinition {
   String? get requiredTokenId => 'HomeAssistant';
 
   @override
+  bool get isResizable => false;
+
+  @override
+  Size getSize(ViewConfigItem item) {
+    final dashboardID =
+        item.properties[PropertyIdsSingleHADashboard.dashboardID].intValue ?? 0;
+    final dashboardName =
+        item.properties[PropertyIdsSingleHADashboard.dashboardName].stringValue;
+
+    final dashboard = GetIt.I<HomeAssistantStore>().getOrCreatePlaceholder(dashboardID, dashboardName);
+    return Size(dashboard.width, dashboard.height);
+  }
+
+  @override
   List<ViewConfigProperty> createDefaultProperties() => [
     ViewConfigProperty(
       key: PropertyIdsSingleHADashboard.dashboardID,

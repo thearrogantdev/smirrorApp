@@ -36,6 +36,23 @@ class GoogleCalendarEntry {
   }
 }
 
+class GoogleTaskListEntry {
+  final String id;
+  final String title;
+
+  GoogleTaskListEntry({
+    required this.id,
+    required this.title,
+  });
+
+  factory GoogleTaskListEntry.fromJson(Map<String, dynamic> json) {
+    return GoogleTaskListEntry(
+      id: json['id'] as String,
+      title: json['title'] as String,
+    );
+  }
+}
+
 class GoogleValidationResult extends ValidationResult {
   const GoogleValidationResult(super.ok, {super.message});
 }
@@ -294,7 +311,10 @@ class GoogleTokenRepository extends TokenProvider<GoogleValidationResult> {
 
   Future<List<GoogleCalendarEntry>> fetchCalendars() async {
     final headers = await ensureAuthorizationHeaders(
-      scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
+      scopes: const [
+        'https://www.googleapis.com/auth/calendar.readonly',
+        'https://www.googleapis.com/auth/tasks',
+      ],
     );
     if (headers == null) return [];
 
@@ -322,6 +342,45 @@ class GoogleTokenRepository extends TokenProvider<GoogleValidationResult> {
       }
     } catch (e) {
       debugPrint('Error fetching calendars: $e');
+      return [];
+    } finally {
+      client.close();
+    }
+  }
+
+  Future<List<GoogleTaskListEntry>> fetchTaskLists() async {
+    final headers = await ensureAuthorizationHeaders(
+      scopes: const [
+        'https://www.googleapis.com/auth/calendar.readonly',
+        'https://www.googleapis.com/auth/tasks',
+      ],
+    );
+    if (headers == null) return [];
+
+    final client = http.Client();
+    try {
+      final response = await client.get(
+        Uri.parse('https://tasks.googleapis.com/tasks/v1/users/@me/lists'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final items = data['items'] as List<dynamic>? ?? [];
+        return items
+            .map(
+              (item) =>
+                  GoogleTaskListEntry.fromJson(item as Map<String, dynamic>),
+            )
+            .toList();
+      } else {
+        debugPrint(
+          'Failed to fetch task lists: ${response.statusCode} ${response.body}',
+        );
+        return [];
+      }
+    } catch (e) {
+      debugPrint('Error fetching task lists: $e');
       return [];
     } finally {
       client.close();

@@ -21,6 +21,12 @@ abstract class WidgetTypeDefinition {
   /// Builds the inner child widget (not the draggable wrapper)
   Widget buildChild(ViewConfigItem item);
 
+  /// Whether this widget is resizable on the canvas.
+  bool get isResizable => true;
+
+  /// Gets the size of this widget. By default, returns the size stored in the item.
+  Size getSize(ViewConfigItem item) => item.size;
+
   String nameOf(BuildContext context) =>
       nameBuilder?.call(context) ?? "Not implemented";
 

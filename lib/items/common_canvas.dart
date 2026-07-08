@@ -6,6 +6,7 @@ class CommonCanvas<T> extends StatelessWidget {
   final double gridSize;
   final bool snapEnabled;
   final bool canResize;
+  final bool Function(T item)? isItemResizable;
 
   // Mapping helpers to interpret your data model
   final double Function(T item) getX;
@@ -29,6 +30,7 @@ class CommonCanvas<T> extends StatelessWidget {
     required this.gridSize,
     required this.snapEnabled,
     required this.canResize,
+    this.isItemResizable,
     required this.getX,
     required this.getY,
     required this.getWidth,
@@ -60,7 +62,7 @@ class CommonCanvas<T> extends StatelessWidget {
               canvasKey: _canvasKey,
               gridSize: gridSize,
               snapEnabled: snapEnabled,
-              canResize: canResize,
+              canResize: canResize && (isItemResizable?.call(item) ?? true),
               position: Offset(getX(item), getY(item)),
               size: Size(getWidth(item), getHeight(item)),
               onUpdate: onUpdateItem,

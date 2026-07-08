@@ -130,3 +130,10 @@ class BackAppWebSocketProxyResponseReceived extends BackAppWebSocketState {
   List<Object?> get props => [response];
 }
 
+class BackAppWebSocketGotCameraMeta extends BackAppWebSocketState {
+  final frame_data.MetaT meta;
+  BackAppWebSocketGotCameraMeta(this.meta);
+  @override
+  List<Object?> get props => [meta];
+}
+

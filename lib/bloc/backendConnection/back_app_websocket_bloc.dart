@@ -359,6 +359,11 @@ class BackAppWebSocketBloc extends Cubit<BackAppWebSocketState> {
           emit(BackAppWebSocketGotFrame(frame));
           break;
 
+        case backmsg.BackAppPayloadTypeId.FrameData_Meta:
+          final meta = (rawMessage.payload as frame_data.Meta).unpack();
+          emit(BackAppWebSocketGotCameraMeta(meta));
+          break;
+
         case backmsg.BackAppPayloadTypeId.TomlConfig:
           final tomlConfig = (rawMessage.payload as backmsg.TomlConfig).unpack();
           emit(BackAppWebSocketGotTomlConfig(tomlConfig));
@@ -417,6 +422,18 @@ class BackAppWebSocketBloc extends Cubit<BackAppWebSocketState> {
       payloadType: appmsg.AppBackPayloadTypeId.SimpleCommand,
       payload: appmsg.SimpleCommandT(
         type: appmsg.AppSimpleCommandType.GET_SCREENSHOT,
+      ),
+    );
+    b.finish(msgT.pack(b));
+    service.send(b.buffer);
+  }
+
+  void sendGetCameraMeta() {
+    final b = fb.Builder(initialSize: 64);
+    final msgT = appmsg.AppBackMessageT(
+      payloadType: appmsg.AppBackPayloadTypeId.SimpleCommand,
+      payload: appmsg.SimpleCommandT(
+        type: appmsg.AppSimpleCommandType.GET_CAMERA_META,
       ),
     );
     b.finish(msgT.pack(b));

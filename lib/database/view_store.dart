@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:smirror_app/bloc/viewConfig/view_config_models.dart';
+import 'package:smirror_app/items/widget_type_registry.dart';
 import 'package:smirror_wire/constants/widget_ids.dart';
 import 'package:smirror_app/database/database.dart';
 import 'package:smirror_app/database/device.dart';
@@ -587,13 +588,18 @@ class ViewStore {
     for (var page in view.pages) {
       final items = page.widgets.map((w) {
         final properties = ViewConfigPropertyMapper.fromEntities(w.properties);
-        return ViewConfigItem(
+        final item = ViewConfigItem(
           id: w.id,
           position: Offset(w.xPos, w.yPos),
           size: Size(w.width, w.height),
           widgetType: w.widgetId,
           properties: properties,
         );
+        final actualSize = WidgetTypeRegistry.get(w.widgetId)?.getSize(item);
+        if (actualSize != null && (actualSize.width != item.size.width || actualSize.height != item.size.height)) {
+          return item.copyWith(size: actualSize);
+        }
+        return item;
       }).toList();
 
       pages.add(

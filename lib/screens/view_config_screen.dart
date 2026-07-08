@@ -129,11 +129,12 @@ class _ViewConfigScreenState extends State<ViewConfigScreen> {
                         gridSize: 10.0,
                         snapEnabled: snapEnabled,
                         canResize: true,
+                        isItemResizable: (item) => WidgetTypeRegistry.get(item.widgetType)?.isResizable ?? true,
 
                         getX: (item) => item.position.dx,
                         getY: (item) => item.position.dy,
-                        getWidth: (item) => item.size.width,
-                        getHeight: (item) => item.size.height,
+                        getWidth: (item) => WidgetTypeRegistry.get(item.widgetType)?.getSize(item).width ?? item.size.width,
+                        getHeight: (item) => WidgetTypeRegistry.get(item.widgetType)?.getSize(item).height ?? item.size.height,
 
                         builder: (item) => WidgetTypeRegistry.get(item.widgetType)!
                             .buildChild(item),
@@ -173,8 +174,17 @@ class _ViewConfigScreenState extends State<ViewConfigScreen> {
 
     if (!context.mounted || properties == null) return;
 
+    final tempItem = ViewConfigItem(
+      id: 0,
+      position: localPos,
+      size: typeDef.defaultSize,
+      widgetType: selectedType,
+      properties: properties,
+    );
+    final size = typeDef.getSize(tempItem);
+
     context.read<ViewConfigBloc>().add(
-      AddItemEvent(localPos, typeDef.defaultSize, selectedType, properties),
+      AddItemEvent(localPos, size, selectedType, properties),
     );
   }
 
@@ -194,7 +204,10 @@ class _ViewConfigScreenState extends State<ViewConfigScreen> {
 
     if (!context.mounted || updatedProps == null) return;
 
-    bloc.add(UpdateItemEvent(item.copyWith(properties: updatedProps)));
+    final tempItem = item.copyWith(properties: updatedProps);
+    final size = typeDef.getSize(tempItem);
+
+    bloc.add(UpdateItemEvent(tempItem.copyWith(size: size)));
   }
 
   void _showDeletePageDialog(BuildContext context, AppLocalizations loc) {

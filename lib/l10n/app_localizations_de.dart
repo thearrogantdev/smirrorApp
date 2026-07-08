@@ -237,6 +237,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get widgetNameGoogleCalendarNextTwoDay => 'Zwei Tage';
 
   @override
+  String get widgetNameGoogleTasks => 'Google Aufgaben';
+
+  @override
+  String get googleTasksSettingsTitle => 'Google Aufgaben-Einstellungen';
+
+  @override
+  String get googleTasksReady => 'Google Aufgaben bereit';
+
+  @override
   String get googleCalendarMissingToken =>
       'Google-Token fehlt (Einstellungen öffnen)';
 

@@ -9,6 +9,8 @@ import 'package:smirror_app/bloc/backendConnection/back_app_websocket_state.dart
 import 'package:smirror_app/bloc/setup_cubit.dart';
 import 'package:smirror_wire/generated/app_back_app_back_generated.dart'
     as appmsg;
+import 'package:smirror_wire/generated/back_app_back_app_generated.dart'
+    as backmsg;
 import 'package:smirror_app/l10n/app_localizations.dart';
 import 'package:get_it/get_it.dart';
 import 'package:smirror_app/services/session_context_service.dart';
@@ -194,9 +196,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           setDialogState(() => _ledColor = color);
                           appBloc.add(
                             AppWebSocketChangeLEDs(
-                              red: color.r.round(),
-                              green: color.g.round(),
-                              blue: color.b.round(),
+                              red: (color.r * 255).round(),
+                              green: (color.g * 255).round(),
+                              blue: (color.b * 255).round(),
                               brightness: _ledBrightness.toInt(),
                             ),
                           );
@@ -233,9 +235,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         setDialogState(() => _ledBrightness = val);
                         appBloc.add(
                           AppWebSocketChangeLEDs(
-                            red: _ledColor.r.round(),
-                            green: _ledColor.g.round(),
-                            blue: _ledColor.b.round(),
+                            red: (_ledColor.r * 255).round(),
+                            green: (_ledColor.g * 255).round(),
+                            blue: (_ledColor.b * 255).round(),
                             brightness: val.toInt(),
                           ),
                         );
@@ -315,16 +317,25 @@ class _HomeScreenState extends State<HomeScreen> {
           variant: _ledOn
               ? ControlButtonVariant.primary
               : ControlButtonVariant.tertiary,
-          colorOverride: _ledOn ? _ledColor : null,
+          colorOverride: _ledOn ? _ledColor : Colors.grey,
           onTap: () {
             setState(() => _ledOn = !_ledOn);
-            appBloc.add(
-              AppWebSocketSendSimpleCommandRequested(
-                commandType: _ledOn
-                    ? appmsg.AppSimpleCommandType.LED_ON
-                    : appmsg.AppSimpleCommandType.LED_OFF,
-              ),
-            );
+            if (_ledOn) {
+              appBloc.add(
+                AppWebSocketChangeLEDs(
+                  red: (_ledColor.r * 255).round(),
+                  green: (_ledColor.g * 255).round(),
+                  blue: (_ledColor.b * 255).round(),
+                  brightness: _ledBrightness.toInt(),
+                ),
+              );
+            } else {
+              appBloc.add(
+                AppWebSocketSendSimpleCommandRequested(
+                  commandType: appmsg.AppSimpleCommandType.LED_OFF,
+                ),
+              );
+            }
           },
           onLongPress: () => _showLedControlDialog(context, appBloc),
         ),
@@ -342,22 +353,31 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: BlocConsumer<BackAppWebSocketBloc, BackAppWebSocketState>(
               listenWhen: (previous, current) =>
-                  current is BackAppWebSocketStatusReceived,
+                  current is BackAppWebSocketStatusReceived ||
+                  current is BackAppWebSocketWelcomeReceived,
               listener: (context, state) {
+                backmsg.LedStatusT? led;
                 if (state is BackAppWebSocketStatusReceived) {
-                  final led = state.status.ledStatus;
-                  if (led != null) {
-                    setState(() {
-                      _ledOn = led.power;
+                  led = state.status.ledStatus;
+                } else if (state is BackAppWebSocketWelcomeReceived) {
+                  led = state.welcomeMessage.ledStatus;
+                }
+                if (led != null) {
+                  setState(() {
+                    _ledOn = led!.power;
+                    final hasColor = led.red != 0 || led.green != 0 || led.blue != 0;
+                    if (hasColor) {
                       _ledColor = Color.fromARGB(
                         255,
                         led.red,
                         led.green,
                         led.blue,
                       );
+                    }
+                    if (led.brightness != 0) {
                       _ledBrightness = led.brightness.toDouble();
-                    });
-                  }
+                    }
+                  });
                 }
               },
               buildWhen: (previous, current) =>

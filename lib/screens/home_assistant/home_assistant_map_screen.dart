@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -20,6 +21,7 @@ import 'package:smirror_wire/generated/app_back_app_back_generated.dart'
     as appmsg;
 import 'package:smirror_wire/generated/dashboard_dashboard_structure_generated.dart'
     as dash;
+import 'package:smirror_wire/constants/widget_ids.dart';
 import 'package:smirror_app/items/common_canvas.dart';
 import 'package:smirror_app/dialogs/widget_config_dialog.dart';
 import 'package:smirror_app/l10n/app_localizations.dart';
@@ -227,8 +229,8 @@ class _HomeAssistantMapScreenState extends State<HomeAssistantMapScreen> {
   /// Handles adding a NEW item
   void _handleAddNew(BuildContext context, Offset localPosition) async {
     // Ensure the new item cannot be added partially outside the bounds (assuming 80x80 items)
-    final clampedX = localPosition.dx.clamp(0.0, currentDashboard.width - 80.0);
-    final clampedY = localPosition.dy.clamp(0.0, currentDashboard.height - 80.0);
+    final clampedX = localPosition.dx.clamp(0.0, currentDashboard.width - WidgetIds.dashboardItemSize);
+    final clampedY = localPosition.dy.clamp(0.0, currentDashboard.height - WidgetIds.dashboardItemSize);
     final safePos = Offset(clampedX, clampedY);
 
     final HAEntityState? entity = await showDialog<HAEntityState>(
@@ -309,7 +311,9 @@ class _HomeAssistantMapScreenState extends State<HomeAssistantMapScreen> {
         if (!mounted) return;
         final infos =
             (state as BackAppWebSocketGotDashboardInfo).dashboardInfo;
-        _showDashboardSyncDialog(context, infos);
+        if (infos.any(_isDashboardOutdated)) {
+          _showDashboardSyncDialog(context, infos);
+        }
       },
       child: BlocBuilder<HABloc, HAState>(
         builder: (context, state) {
@@ -428,12 +432,23 @@ class _HomeAssistantMapScreenState extends State<HomeAssistantMapScreen> {
                 ),
                 body: LayoutBuilder(
                       builder: (context, constraints) {
+                        final double fitScale;
+                        if (currentDashboard.width > 0 && currentDashboard.height > 0) {
+                          fitScale = min(
+                            constraints.maxWidth / currentDashboard.width,
+                            constraints.maxHeight / currentDashboard.height,
+                          );
+                        } else {
+                          fitScale = 0.1;
+                        }
+                        final double minScale = min(0.1, fitScale * 0.9).clamp(0.01, 1.0);
+
                         return Center(
                           child: InteractiveViewer(
-                            minScale: 0.1,
+                            minScale: minScale,
                             maxScale: 3.0,
                             constrained: false,
-                            boundaryMargin: const EdgeInsets.all(500),
+                            boundaryMargin: const EdgeInsets.all(double.infinity),
                             child: SizedBox(
                               width: currentDashboard.width,
                               height: currentDashboard.height,
@@ -469,13 +484,13 @@ class _HomeAssistantMapScreenState extends State<HomeAssistantMapScreen> {
                                     // INTERACTIVE CANVAS LAYER
                                     CommonCanvas<DashboardItem>(
                                       items: state.dashboardItems,
-                                      gridSize: 80.0,
+                                      gridSize: WidgetIds.dashboardItemSize,
                                       snapEnabled: state.snapToGrid,
                                       canResize: false,
                                       getX: (item) => item.x.toDouble(),
                                       getY: (item) => item.y.toDouble(),
-                                      getWidth: (_) => 80.0,
-                                      getHeight: (_) => 80.0,
+                                      getWidth: (_) => WidgetIds.dashboardItemSize,
+                                      getHeight: (_) => WidgetIds.dashboardItemSize,
                                       builder: (item) {
                                         final liveValue =
                                             _entityMap[item.entityId]?.state ??

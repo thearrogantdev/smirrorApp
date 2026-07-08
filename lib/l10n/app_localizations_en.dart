@@ -230,6 +230,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get widgetNameGoogleCalendarNextTwoDay => 'Two days';
 
   @override
+  String get widgetNameGoogleTasks => 'Google Tasks';
+
+  @override
+  String get googleTasksSettingsTitle => 'Google Tasks Settings';
+
+  @override
+  String get googleTasksReady => 'Google Tasks Ready';
+
+  @override
   String get googleCalendarMissingToken =>
       'Google token missing (open settings)';
 
