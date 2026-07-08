@@ -39,16 +39,14 @@ class _ItemConfigDialogState extends State<ItemConfigDialog> {
 
     // 2. Set Basic Initial Values
     _initialValues = {
-      'displayName':
-          widget.existingItem?.displayName ??
-          widget.entity.attributes['friendly_name'] ??
-          widget.entity.entityId,
       'stdIcon':
           widget.existingItem?.standardIconCodePoint ??
           Icons.help_outline.codePoint,
       'stdColor':
           widget.existingItem?.standardColorValue ?? Colors.grey.toARGB32(),
       'unitOverride': widget.existingItem?.unitOverride,
+      'valueFontSize': widget.existingItem?.valueFontSize.toString() ?? '9.0',
+      'valuePosition': widget.existingItem?.valuePosition ?? 0,
     };
 
     // 3. Load Thresholds
@@ -131,18 +129,60 @@ class _ItemConfigDialogState extends State<ItemConfigDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Display Name Section
-                _buildSectionHeader(context, loc.haConfigDisplayName, Icons.label_outline),
-                FormBuilderTextField(
-                  name: 'displayName',
-                  decoration: InputDecoration(
-                    hintText: loc.haConfigDisplayName,
-                    prefixIcon: const Icon(Icons.edit_note),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
+                // Value Styling Section
+                _buildSectionHeader(context, "Value Style", Icons.text_fields),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  validator: FormBuilderValidators.required(),
+                  child: Column(
+                    children: [
+                      FormBuilderTextField(
+                        name: 'valueFontSize',
+                        decoration: InputDecoration(
+                          labelText: 'Value Font Size',
+                          prefixIcon: const Icon(Icons.format_size),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        validator: FormBuilderValidators.compose([
+                          FormBuilderValidators.required(),
+                          FormBuilderValidators.numeric(),
+                        ]),
+                      ),
+                      const SizedBox(height: 16),
+                      FormBuilderDropdown<int>(
+                        name: 'valuePosition',
+                        decoration: InputDecoration(
+                          labelText: 'Value Position',
+                          prefixIcon: const Icon(Icons.place_outlined),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 0, child: Text('Bottom')),
+                          DropdownMenuItem(value: 1, child: Text('Left')),
+                          DropdownMenuItem(value: 2, child: Text('Right')),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      FormBuilderTextField(
+                        name: 'unitOverride',
+                        decoration: InputDecoration(
+                          labelText: 'Unit Override',
+                          prefixIcon: const Icon(Icons.text_format),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 24),
 
@@ -396,20 +436,24 @@ class _ItemConfigDialogState extends State<ItemConfigDialog> {
           DashboardItem(
             dbType: type.index,
             entityId: widget.entity.entityId,
-            displayName: values['displayName'],
+            displayName: widget.entity.entityId,
             x: widget.position.dx,
             y: widget.position.dy,
             standardIconCodePoint: values['stdIcon'],
             standardColorValue: values['stdColor'],
+            valueFontSize: double.tryParse(values['valueFontSize'].toString()) ?? 9.0,
+            valuePosition: values['valuePosition'] ?? 0,
+            unitOverride: values['unitOverride'],
           );
 
       // If it's an existing item, we update its fields manually
       // The 'id' and 'dashboard' relation stay exactly as they were
       if (widget.existingItem != null) {
-        item.displayName = values['displayName'];
         item.standardIconCodePoint = values['stdIcon'];
         item.standardColorValue = values['stdColor'];
         item.unitOverride = values['unitOverride'];
+        item.valueFontSize = double.tryParse(values['valueFontSize'].toString()) ?? 9.0;
+        item.valuePosition = values['valuePosition'] ?? 0;
       }
 
       // Handle Thresholds: Clear old ones and add new ones from form

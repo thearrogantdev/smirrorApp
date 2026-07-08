@@ -147,6 +147,8 @@ class BackAppWebSocketBloc extends Cubit<BackAppWebSocketState> {
               width: fbItem.width,
               height: fbItem.height,
               unitOverride: fbItem.unitOverride,
+              valueFontSize: fbItem.valueFontSize,
+              valuePosition: fbItem.valuePosition.value,
             );
             item.thresholds.addAll(
               (fbItem.thresholds ?? []).map(

@@ -43,6 +43,8 @@ class DashboardItem {
   int standardIconCodePoint;
   int standardColorValue;
   String? unitOverride;
+  double valueFontSize;
+  int valuePosition;
 
   final dashboard = ToOne<Dashboard>();
   final thresholds = ToMany<ThresholdConfig>();
@@ -59,6 +61,8 @@ class DashboardItem {
     this.width = 1,
     this.height = 1,
     this.unitOverride,
+    this.valueFontSize = 9.0,
+    this.valuePosition = 0,
   });
 }
 

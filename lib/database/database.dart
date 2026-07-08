@@ -135,6 +135,8 @@ class DashboardItems extends Table {
   IntColumn get standardColorValue => integer()();
   TextColumn get unitOverride => text().nullable()();
   IntColumn get dashboardId => integer().references(Dashboards, #id, onDelete: KeyAction.cascade)();
+  RealColumn get valueFontSize => real().withDefault(const Constant(9.0))();
+  IntColumn get valuePosition => integer().withDefault(const Constant(0))();
 }
 
 // ThresholdConfigs Table
@@ -178,7 +180,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -189,6 +191,10 @@ class AppDatabase extends _$AppDatabase {
       onUpgrade: (m, from, to) async {
         if (from < 2) {
           await m.addColumn(views, views.dirty);
+        }
+        if (from < 3) {
+          await m.addColumn(dashboardItems, dashboardItems.valueFontSize);
+          await m.addColumn(dashboardItems, dashboardItems.valuePosition);
         }
       },
     );

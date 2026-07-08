@@ -5,11 +5,13 @@ import 'package:smirror_app/screens/home_assistant/picker_helpers.dart';
 class DashboardWidget extends StatelessWidget {
   final DashboardItem item;
   final String liveValue;
+  final String? defaultUnit;
 
   const DashboardWidget({
     super.key,
     required this.item,
     required this.liveValue,
+    this.defaultUnit,
   });
 
   /// Logic to parse the Home Assistant state string into a comparable double
@@ -51,40 +53,63 @@ class DashboardWidget extends StatelessWidget {
       }
     }
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (activeIcon != 0)
-          Icon(
+    final Widget iconWidget = activeIcon != 0
+        ? Icon(
             getIconFromCodePoint(activeIcon),
             color: Color(activeColor),
             size: 32,
           )
-        else
-          Icon(
+        : Icon(
             Icons.block,
             color: Color(activeColor).withValues(alpha: 0.5),
             size: 32,
-          ),
-        const SizedBox(height: 4),
-        Text(
-          item.displayName,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 10,
-            fontWeight: FontWeight.w500,
-          ),
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
-        ),
-        Text(
-          liveValue + (item.unitOverride ?? ''),
-          style: TextStyle(
-            color: Color(activeColor).withValues(alpha: 0.7),
-            fontSize: 9,
-          ),
-        ),
-      ],
+          );
+
+    final String unit = (item.unitOverride != null && item.unitOverride!.isNotEmpty)
+        ? item.unitOverride!
+        : (defaultUnit ?? '');
+
+    final Widget valueWidget = Text(
+      liveValue + unit,
+      style: TextStyle(
+        color: Color(activeColor).withValues(alpha: 0.7),
+        fontSize: item.valueFontSize,
+      ),
     );
+
+    if (item.valuePosition == 1) {
+      // Left
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          valueWidget,
+          const SizedBox(width: 4),
+          iconWidget,
+        ],
+      );
+    } else if (item.valuePosition == 2) {
+      // Right
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          iconWidget,
+          const SizedBox(width: 4),
+          valueWidget,
+        ],
+      );
+    } else {
+      // Bottom
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          iconWidget,
+          const SizedBox(height: 4),
+          valueWidget,
+        ],
+      );
+    }
   }
 }

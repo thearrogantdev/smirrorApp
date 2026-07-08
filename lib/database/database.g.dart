@@ -3956,6 +3956,30 @@ class $DashboardItemsTable extends DashboardItems
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _valueFontSizeMeta = const VerificationMeta(
+    'valueFontSize',
+  );
+  @override
+  late final GeneratedColumn<double> valueFontSize = GeneratedColumn<double>(
+    'value_font_size',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(9.0),
+  );
+  static const VerificationMeta _valuePositionMeta = const VerificationMeta(
+    'valuePosition',
+  );
+  @override
+  late final GeneratedColumn<int> valuePosition = GeneratedColumn<int>(
+    'value_position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -3970,6 +3994,8 @@ class $DashboardItemsTable extends DashboardItems
     standardColorValue,
     unitOverride,
     dashboardId,
+    valueFontSize,
+    valuePosition,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4073,6 +4099,24 @@ class $DashboardItemsTable extends DashboardItems
     } else if (isInserting) {
       context.missing(_dashboardIdMeta);
     }
+    if (data.containsKey('value_font_size')) {
+      context.handle(
+        _valueFontSizeMeta,
+        valueFontSize.isAcceptableOrUnknown(
+          data['value_font_size']!,
+          _valueFontSizeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('value_position')) {
+      context.handle(
+        _valuePositionMeta,
+        valuePosition.isAcceptableOrUnknown(
+          data['value_position']!,
+          _valuePositionMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -4130,6 +4174,14 @@ class $DashboardItemsTable extends DashboardItems
         DriftSqlType.int,
         data['${effectivePrefix}dashboard_id'],
       )!,
+      valueFontSize: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}value_font_size'],
+      )!,
+      valuePosition: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}value_position'],
+      )!,
     );
   }
 
@@ -4153,6 +4205,8 @@ class DashboardItemRow extends DataClass
   final int standardColorValue;
   final String? unitOverride;
   final int dashboardId;
+  final double valueFontSize;
+  final int valuePosition;
   const DashboardItemRow({
     required this.id,
     required this.entityId,
@@ -4166,6 +4220,8 @@ class DashboardItemRow extends DataClass
     required this.standardColorValue,
     this.unitOverride,
     required this.dashboardId,
+    required this.valueFontSize,
+    required this.valuePosition,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -4184,6 +4240,8 @@ class DashboardItemRow extends DataClass
       map['unit_override'] = Variable<String>(unitOverride);
     }
     map['dashboard_id'] = Variable<int>(dashboardId);
+    map['value_font_size'] = Variable<double>(valueFontSize);
+    map['value_position'] = Variable<int>(valuePosition);
     return map;
   }
 
@@ -4203,6 +4261,8 @@ class DashboardItemRow extends DataClass
           ? const Value.absent()
           : Value(unitOverride),
       dashboardId: Value(dashboardId),
+      valueFontSize: Value(valueFontSize),
+      valuePosition: Value(valuePosition),
     );
   }
 
@@ -4226,6 +4286,8 @@ class DashboardItemRow extends DataClass
       standardColorValue: serializer.fromJson<int>(json['standardColorValue']),
       unitOverride: serializer.fromJson<String?>(json['unitOverride']),
       dashboardId: serializer.fromJson<int>(json['dashboardId']),
+      valueFontSize: serializer.fromJson<double>(json['valueFontSize']),
+      valuePosition: serializer.fromJson<int>(json['valuePosition']),
     );
   }
   @override
@@ -4244,6 +4306,8 @@ class DashboardItemRow extends DataClass
       'standardColorValue': serializer.toJson<int>(standardColorValue),
       'unitOverride': serializer.toJson<String?>(unitOverride),
       'dashboardId': serializer.toJson<int>(dashboardId),
+      'valueFontSize': serializer.toJson<double>(valueFontSize),
+      'valuePosition': serializer.toJson<int>(valuePosition),
     };
   }
 
@@ -4260,6 +4324,8 @@ class DashboardItemRow extends DataClass
     int? standardColorValue,
     Value<String?> unitOverride = const Value.absent(),
     int? dashboardId,
+    double? valueFontSize,
+    int? valuePosition,
   }) => DashboardItemRow(
     id: id ?? this.id,
     entityId: entityId ?? this.entityId,
@@ -4273,6 +4339,8 @@ class DashboardItemRow extends DataClass
     standardColorValue: standardColorValue ?? this.standardColorValue,
     unitOverride: unitOverride.present ? unitOverride.value : this.unitOverride,
     dashboardId: dashboardId ?? this.dashboardId,
+    valueFontSize: valueFontSize ?? this.valueFontSize,
+    valuePosition: valuePosition ?? this.valuePosition,
   );
   DashboardItemRow copyWithCompanion(DashboardItemsCompanion data) {
     return DashboardItemRow(
@@ -4298,6 +4366,12 @@ class DashboardItemRow extends DataClass
       dashboardId: data.dashboardId.present
           ? data.dashboardId.value
           : this.dashboardId,
+      valueFontSize: data.valueFontSize.present
+          ? data.valueFontSize.value
+          : this.valueFontSize,
+      valuePosition: data.valuePosition.present
+          ? data.valuePosition.value
+          : this.valuePosition,
     );
   }
 
@@ -4315,7 +4389,9 @@ class DashboardItemRow extends DataClass
           ..write('standardIconCodePoint: $standardIconCodePoint, ')
           ..write('standardColorValue: $standardColorValue, ')
           ..write('unitOverride: $unitOverride, ')
-          ..write('dashboardId: $dashboardId')
+          ..write('dashboardId: $dashboardId, ')
+          ..write('valueFontSize: $valueFontSize, ')
+          ..write('valuePosition: $valuePosition')
           ..write(')'))
         .toString();
   }
@@ -4334,6 +4410,8 @@ class DashboardItemRow extends DataClass
     standardColorValue,
     unitOverride,
     dashboardId,
+    valueFontSize,
+    valuePosition,
   );
   @override
   bool operator ==(Object other) =>
@@ -4350,7 +4428,9 @@ class DashboardItemRow extends DataClass
           other.standardIconCodePoint == this.standardIconCodePoint &&
           other.standardColorValue == this.standardColorValue &&
           other.unitOverride == this.unitOverride &&
-          other.dashboardId == this.dashboardId);
+          other.dashboardId == this.dashboardId &&
+          other.valueFontSize == this.valueFontSize &&
+          other.valuePosition == this.valuePosition);
 }
 
 class DashboardItemsCompanion extends UpdateCompanion<DashboardItemRow> {
@@ -4366,6 +4446,8 @@ class DashboardItemsCompanion extends UpdateCompanion<DashboardItemRow> {
   final Value<int> standardColorValue;
   final Value<String?> unitOverride;
   final Value<int> dashboardId;
+  final Value<double> valueFontSize;
+  final Value<int> valuePosition;
   const DashboardItemsCompanion({
     this.id = const Value.absent(),
     this.entityId = const Value.absent(),
@@ -4379,6 +4461,8 @@ class DashboardItemsCompanion extends UpdateCompanion<DashboardItemRow> {
     this.standardColorValue = const Value.absent(),
     this.unitOverride = const Value.absent(),
     this.dashboardId = const Value.absent(),
+    this.valueFontSize = const Value.absent(),
+    this.valuePosition = const Value.absent(),
   });
   DashboardItemsCompanion.insert({
     this.id = const Value.absent(),
@@ -4393,6 +4477,8 @@ class DashboardItemsCompanion extends UpdateCompanion<DashboardItemRow> {
     required int standardColorValue,
     this.unitOverride = const Value.absent(),
     required int dashboardId,
+    this.valueFontSize = const Value.absent(),
+    this.valuePosition = const Value.absent(),
   }) : entityId = Value(entityId),
        displayName = Value(displayName),
        dbType = Value(dbType),
@@ -4412,6 +4498,8 @@ class DashboardItemsCompanion extends UpdateCompanion<DashboardItemRow> {
     Expression<int>? standardColorValue,
     Expression<String>? unitOverride,
     Expression<int>? dashboardId,
+    Expression<double>? valueFontSize,
+    Expression<int>? valuePosition,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -4428,6 +4516,8 @@ class DashboardItemsCompanion extends UpdateCompanion<DashboardItemRow> {
         'standard_color_value': standardColorValue,
       if (unitOverride != null) 'unit_override': unitOverride,
       if (dashboardId != null) 'dashboard_id': dashboardId,
+      if (valueFontSize != null) 'value_font_size': valueFontSize,
+      if (valuePosition != null) 'value_position': valuePosition,
     });
   }
 
@@ -4444,6 +4534,8 @@ class DashboardItemsCompanion extends UpdateCompanion<DashboardItemRow> {
     Value<int>? standardColorValue,
     Value<String?>? unitOverride,
     Value<int>? dashboardId,
+    Value<double>? valueFontSize,
+    Value<int>? valuePosition,
   }) {
     return DashboardItemsCompanion(
       id: id ?? this.id,
@@ -4459,6 +4551,8 @@ class DashboardItemsCompanion extends UpdateCompanion<DashboardItemRow> {
       standardColorValue: standardColorValue ?? this.standardColorValue,
       unitOverride: unitOverride ?? this.unitOverride,
       dashboardId: dashboardId ?? this.dashboardId,
+      valueFontSize: valueFontSize ?? this.valueFontSize,
+      valuePosition: valuePosition ?? this.valuePosition,
     );
   }
 
@@ -4503,6 +4597,12 @@ class DashboardItemsCompanion extends UpdateCompanion<DashboardItemRow> {
     if (dashboardId.present) {
       map['dashboard_id'] = Variable<int>(dashboardId.value);
     }
+    if (valueFontSize.present) {
+      map['value_font_size'] = Variable<double>(valueFontSize.value);
+    }
+    if (valuePosition.present) {
+      map['value_position'] = Variable<int>(valuePosition.value);
+    }
     return map;
   }
 
@@ -4520,7 +4620,9 @@ class DashboardItemsCompanion extends UpdateCompanion<DashboardItemRow> {
           ..write('standardIconCodePoint: $standardIconCodePoint, ')
           ..write('standardColorValue: $standardColorValue, ')
           ..write('unitOverride: $unitOverride, ')
-          ..write('dashboardId: $dashboardId')
+          ..write('dashboardId: $dashboardId, ')
+          ..write('valueFontSize: $valueFontSize, ')
+          ..write('valuePosition: $valuePosition')
           ..write(')'))
         .toString();
   }
@@ -7216,6 +7318,8 @@ typedef $$DashboardItemsTableCreateCompanionBuilder =
       required int standardColorValue,
       Value<String?> unitOverride,
       required int dashboardId,
+      Value<double> valueFontSize,
+      Value<int> valuePosition,
     });
 typedef $$DashboardItemsTableUpdateCompanionBuilder =
     DashboardItemsCompanion Function({
@@ -7231,6 +7335,8 @@ typedef $$DashboardItemsTableUpdateCompanionBuilder =
       Value<int> standardColorValue,
       Value<String?> unitOverride,
       Value<int> dashboardId,
+      Value<double> valueFontSize,
+      Value<int> valuePosition,
     });
 
 class $$DashboardItemsTableFilterComposer
@@ -7299,6 +7405,16 @@ class $$DashboardItemsTableFilterComposer
 
   ColumnFilters<int> get dashboardId => $composableBuilder(
     column: $table.dashboardId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get valueFontSize => $composableBuilder(
+    column: $table.valueFontSize,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get valuePosition => $composableBuilder(
+    column: $table.valuePosition,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -7371,6 +7487,16 @@ class $$DashboardItemsTableOrderingComposer
     column: $table.dashboardId,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<double> get valueFontSize => $composableBuilder(
+    column: $table.valueFontSize,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get valuePosition => $composableBuilder(
+    column: $table.valuePosition,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$DashboardItemsTableAnnotationComposer
@@ -7427,6 +7553,16 @@ class $$DashboardItemsTableAnnotationComposer
     column: $table.dashboardId,
     builder: (column) => column,
   );
+
+  GeneratedColumn<double> get valueFontSize => $composableBuilder(
+    column: $table.valueFontSize,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get valuePosition => $composableBuilder(
+    column: $table.valuePosition,
+    builder: (column) => column,
+  );
 }
 
 class $$DashboardItemsTableTableManager
@@ -7478,6 +7614,8 @@ class $$DashboardItemsTableTableManager
                 Value<int> standardColorValue = const Value.absent(),
                 Value<String?> unitOverride = const Value.absent(),
                 Value<int> dashboardId = const Value.absent(),
+                Value<double> valueFontSize = const Value.absent(),
+                Value<int> valuePosition = const Value.absent(),
               }) => DashboardItemsCompanion(
                 id: id,
                 entityId: entityId,
@@ -7491,6 +7629,8 @@ class $$DashboardItemsTableTableManager
                 standardColorValue: standardColorValue,
                 unitOverride: unitOverride,
                 dashboardId: dashboardId,
+                valueFontSize: valueFontSize,
+                valuePosition: valuePosition,
               ),
           createCompanionCallback:
               ({
@@ -7506,6 +7646,8 @@ class $$DashboardItemsTableTableManager
                 required int standardColorValue,
                 Value<String?> unitOverride = const Value.absent(),
                 required int dashboardId,
+                Value<double> valueFontSize = const Value.absent(),
+                Value<int> valuePosition = const Value.absent(),
               }) => DashboardItemsCompanion.insert(
                 id: id,
                 entityId: entityId,
@@ -7519,6 +7661,8 @@ class $$DashboardItemsTableTableManager
                 standardColorValue: standardColorValue,
                 unitOverride: unitOverride,
                 dashboardId: dashboardId,
+                valueFontSize: valueFontSize,
+                valuePosition: valuePosition,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

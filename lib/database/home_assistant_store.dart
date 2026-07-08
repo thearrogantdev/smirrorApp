@@ -75,6 +75,8 @@ class HomeAssistantStore {
           width: item.width,
           height: item.height,
           unitOverride: item.unitOverride,
+          valueFontSize: item.valueFontSize,
+          valuePosition: item.valuePosition,
         );
         itemEntity.dashboard.target = dEntity;
         itemEntity.dashboard.targetId = dEntity.id;
@@ -178,6 +180,8 @@ class HomeAssistantStore {
           standardColorValue: item.standardColorValue,
           unitOverride: Value(item.unitOverride),
           dashboardId: dashboard.id,
+          valueFontSize: Value(item.valueFontSize),
+          valuePosition: Value(item.valuePosition),
         );
         final itemId = await _db.into(_db.dashboardItems).insert(itemCompanion);
         item.id = itemId;
@@ -371,6 +375,8 @@ class HomeAssistantStore {
         standardColorValue: item.standardColorValue,
         unitOverride: Value(item.unitOverride),
         dashboardId: dashboardId,
+        valueFontSize: Value(item.valueFontSize),
+        valuePosition: Value(item.valuePosition),
       );
 
       final itemId = await _db.into(_db.dashboardItems).insert(itemCompanion, mode: InsertMode.insertOrReplace);

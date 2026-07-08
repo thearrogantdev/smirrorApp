@@ -492,12 +492,13 @@ class _HomeAssistantMapScreenState extends State<HomeAssistantMapScreen> {
                                       getWidth: (_) => WidgetIds.dashboardItemSize,
                                       getHeight: (_) => WidgetIds.dashboardItemSize,
                                       builder: (item) {
-                                        final liveValue =
-                                            _entityMap[item.entityId]?.state ??
-                                                '...';
+                                        final entityState = _entityMap[item.entityId];
+                                        final liveValue = entityState?.state ?? '...';
+                                        final defaultUnit = entityState?.attributes['unit_of_measurement'] as String?;
                                         return DashboardWidget(
                                           item: item,
                                           liveValue: liveValue,
+                                          defaultUnit: defaultUnit,
                                         );
                                       },
                                       onUpdateItem: (item, pos, size) {

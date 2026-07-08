@@ -326,6 +326,8 @@ class AppWebSocketBloc extends Bloc<AppWebSocketEvent, AppWebSocketState> {
         standardColorValue: item.standardColorValue,
         unitOverride: item.unitOverride ?? "",
         thresholds: thresholdsT,
+        valueFontSize: item.valueFontSize,
+        valuePosition: dash.ValuePosition.fromValue(item.valuePosition),
       );
     }).toList();
 
