@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:smirror_app/dialogs/app_dialog.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smirror_app/bloc/backendConnection/app_websocket_bloc.dart';
@@ -176,82 +177,101 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _ledOn = false;
 
   void _showLedControlDialog(BuildContext context, AppWebSocketBloc appBloc) {
+    final theme = Theme.of(context);
     final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            return AlertDialog(
-              title: Text(loc.homeLedControl),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      height: 380,
-                      child: HueRingPicker(
-                        pickerColor: _ledColor,
-                        onColorChanged: (color) {
-                          setDialogState(() => _ledColor = color);
-                          appBloc.add(
-                            AppWebSocketChangeLEDs(
-                              red: (color.r * 255).round(),
-                              green: (color.g * 255).round(),
-                              blue: (color.b * 255).round(),
-                              brightness: _ledBrightness.toInt(),
+            return AppDialog(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    loc.homeLedControl,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            height: 380,
+                            child: HueRingPicker(
+                              pickerColor: _ledColor,
+                              onColorChanged: (color) {
+                                setDialogState(() => _ledColor = color);
+                                appBloc.add(
+                                  AppWebSocketChangeLEDs(
+                                    red: (color.r * 255).round(),
+                                    green: (color.g * 255).round(),
+                                    blue: (color.b * 255).round(),
+                                    brightness: _ledBrightness.toInt(),
+                                  ),
+                                );
+                              },
                             ),
-                          );
-                        },
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.brightness_medium_rounded,
+                                color: theme.colorScheme.primary,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  loc.brightness,
+                                  style: theme.textTheme.bodyLarge
+                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              Text(
+                                '${((_ledBrightness / 255) * 100).toInt()}%',
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            ],
+                          ),
+                          Slider(
+                            value: _ledBrightness,
+                            min: 0,
+                            max: 255,
+                            divisions: 255,
+                            onChanged: (val) {
+                              setDialogState(() => _ledBrightness = val);
+                              appBloc.add(
+                                AppWebSocketChangeLEDs(
+                                  red: (_ledColor.r * 255).round(),
+                                  green: (_ledColor.g * 255).round(),
+                                  blue: (_ledColor.b * 255).round(),
+                                  brightness: val.toInt(),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.brightness_medium_rounded,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            loc.brightness,
-                            style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        Text(
-                          '${((_ledBrightness / 255) * 100).toInt()}%',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                    Slider(
-                      value: _ledBrightness,
-                      min: 0,
-                      max: 255,
-                      divisions: 255,
-                      onChanged: (val) {
-                        setDialogState(() => _ledBrightness = val);
-                        appBloc.add(
-                          AppWebSocketChangeLEDs(
-                            red: (_ledColor.r * 255).round(),
-                            green: (_ledColor.g * 255).round(),
-                            blue: (_ledColor.b * 255).round(),
-                            brightness: val.toInt(),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(loc.close),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(loc.close),
-                ),
-              ],
             );
           },
         );

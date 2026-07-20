@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smirror_app/dialogs/app_dialog.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:get_it/get_it.dart';
 import 'package:smirror_app/bloc/backendConnection/app_websocket_bloc.dart';
@@ -156,163 +157,185 @@ class HAMultiDashboard extends WidgetTypeDefinition {
 
     return showDialog<List<ViewConfigProperty>>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(loc.haSelectDashboards),
-        content: SizedBox(
-          width: 400,
-          child: BlocBuilder<BackAppWebSocketBloc, BackAppWebSocketState>(
-            buildWhen: (prev, curr) => curr is BackAppWebSocketGotDashboardInfo,
-            builder: (context, state) {
-              List<dash.DashboardInfo> infos = [];
-              if (state is BackAppWebSocketGotDashboardInfo) {
-                infos = state.dashboardInfo;
-              }
+      builder: (ctx) {
+        final theme = Theme.of(ctx);
+        return AppDialog(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                loc.haSelectDashboards,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: BlocBuilder<BackAppWebSocketBloc, BackAppWebSocketState>(
+                    buildWhen: (prev, curr) => curr is BackAppWebSocketGotDashboardInfo,
+                    builder: (context, state) {
+                      List<dash.DashboardInfo> infos = [];
+                      if (state is BackAppWebSocketGotDashboardInfo) {
+                        infos = state.dashboardInfo;
+                      }
 
-              if (infos.isEmpty && state is! BackAppWebSocketGotDashboardInfo) {
-                return const Center(child: CircularProgressIndicator());
-              }
+                      if (infos.isEmpty && state is! BackAppWebSocketGotDashboardInfo) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-              return FormBuilder(
-                key: formKey,
-                initialValue: {'ids': initialBackendIds},
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    FormBuilderField<List<int>>(
-                      name: 'ids',
-                      builder: (FormFieldState<List<int>?> field) {
-                        final List<int> currentIds = field.value ?? [];
-
-                        return Column(
+                      return FormBuilder(
+                        key: formKey,
+                        initialValue: {'ids': initialBackendIds},
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (currentIds.isEmpty && infos.isEmpty)
-                              Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Text(
-                                  loc.haNoDashboardsFound,
-                                  style: const TextStyle(color: Colors.grey),
-                                ),
-                              ),
+                            FormBuilderField<List<int>>(
+                              name: 'ids',
+                              builder: (FormFieldState<List<int>?> field) {
+                                final List<int> currentIds = field.value ?? [];
 
-                            // REORDERABLE LIST
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(maxHeight: 350),
-                              child: ReorderableListView(
-                                shrinkWrap: true,
-                                onReorderItem: (oldIdx, newIdx) {
-                                  final newList = List<int>.from(currentIds);
-                                  final item = newList.removeAt(oldIdx);
-                                  newList.insert(newIdx, item);
-                                  field.didChange(newList);
-                                },
-                                proxyDecorator: (Widget child, int index, Animation<double> animation) {
-                                  return Material(
-                                    color: Colors.transparent,
-                                    child: Card(elevation: 4, child: child),
-                                  );
-                                },
-                                children: [
-                                  for (int i = 0; i < currentIds.length; i++)
-                                    ReorderableDragStartListener(
-                                      key: ValueKey(currentIds[i]),
-                                      index: i,
-                                      child: ListTile(
-                                        leading: const Icon(Icons.drag_handle),
-                                        title: Text(
-                                          infos.any((d) => d.backendId == currentIds[i])
-                                              ? (infos.firstWhere((d) => d.backendId == currentIds[i]).name ?? 'ID: ${currentIds[i]}')
-                                              : 'ID: ${currentIds[i]} (Missing)',
-                                        ),
-                                        trailing: IconButton(
-                                          icon: const Icon(Icons.close, color: Colors.red),
-                                          onPressed: () {
-                                            final newList = List<int>.from(currentIds)..removeAt(i);
-                                            field.didChange(newList);
-                                          },
+                                return Column(
+                                  children: [
+                                    if (currentIds.isEmpty && infos.isEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Text(
+                                          loc.haNoDashboardsFound,
+                                          style: const TextStyle(color: Colors.grey),
                                         ),
                                       ),
+
+                                    // REORDERABLE LIST
+                                    ConstrainedBox(
+                                      constraints: const BoxConstraints(maxHeight: 350),
+                                      child: ReorderableListView(
+                                        shrinkWrap: true,
+                                        onReorderItem: (oldIdx, newIdx) {
+                                          final newList = List<int>.from(currentIds);
+                                          final item = newList.removeAt(oldIdx);
+                                          newList.insert(newIdx, item);
+                                          field.didChange(newList);
+                                        },
+                                        proxyDecorator: (Widget child, int index, Animation<double> animation) {
+                                          return Material(
+                                            color: Colors.transparent,
+                                            child: Card(elevation: 4, child: child),
+                                          );
+                                        },
+                                        children: [
+                                          for (int i = 0; i < currentIds.length; i++)
+                                            ReorderableDragStartListener(
+                                              key: ValueKey(currentIds[i]),
+                                              index: i,
+                                              child: ListTile(
+                                                leading: const Icon(Icons.drag_handle),
+                                                title: Text(
+                                                  infos.any((d) => d.backendId == currentIds[i])
+                                                      ? (infos.firstWhere((d) => d.backendId == currentIds[i]).name ?? 'ID: ${currentIds[i]}')
+                                                      : 'ID: ${currentIds[i]} (Missing)',
+                                                ),
+                                                trailing: IconButton(
+                                                  icon: const Icon(Icons.close, color: Colors.red),
+                                                  onPressed: () {
+                                                    final newList = List<int>.from(currentIds)..removeAt(i);
+                                                    field.didChange(newList);
+                                                  },
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
                                     ),
-                                ],
-                              ),
-                            ),
-                            const Divider(),
-                            TextButton.icon(
-                              onPressed: infos.isEmpty ? null : () => _showAddMenu(
-                                ctx,
-                                infos,
-                                currentIds,
-                                (newId) {
-                                  final newList = List<int>.from(currentIds)..add(newId);
-                                  field.didChange(newList);
-                                },
-                              ),
-                              icon: const Icon(Icons.add),
-                              label: Text(loc.haAddDashboard),
+                                    const Divider(),
+                                    TextButton.icon(
+                                      onPressed: infos.isEmpty ? null : () => _showAddMenu(
+                                        ctx,
+                                        infos,
+                                        currentIds,
+                                        (newId) {
+                                          final newList = List<int>.from(currentIds)..add(newId);
+                                          field.didChange(newList);
+                                        },
+                                      ),
+                                      icon: const Icon(Icons.add),
+                                      label: Text(loc.haAddDashboard),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                           ],
-                        );
-                      },
-                    ),
-                  ],
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              );
-            },
-          ),
-        ),
-        actions: [
-          if (onDelete != null)
-            TextButton(
-              onPressed: onDelete,
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: Text(loc.delete),
-            ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(loc.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (formKey.currentState?.saveAndValidate() ?? false) {
-                final selectedIds = List<int>.from(formKey.currentState!.value['ids']);
-                final state = context.read<BackAppWebSocketBloc>().state;
-                if (state is BackAppWebSocketGotDashboardInfo) {
-                  final List<String> selectedNames = [];
-                  for (final id in selectedIds) {
-                    final info = state.dashboardInfo.firstWhere((i) => i.backendId == id, orElse: () => throw StateError("Selected ID not found in info list"));
-                    final name = info.name ?? "HA Dashboard: #$id";
-                    GetIt.I<HomeAssistantStore>().getOrCreatePlaceholder(id, name);
-                    selectedNames.add(name);
-                  }
-
-                  // --- BINARY PACKING FOR BACKEND ---
-                  final builder = fb.Builder(initialSize: 128);
-                  final idsOffset = builder.writeListUint64(selectedIds);
-
-                  final listBuilder = internals.DashboardListBuilder(builder);
-                  listBuilder.begin();
-                  listBuilder.addIdsOffset(idsOffset);
-                  final offset = listBuilder.finish();
-                  builder.finish(offset);
-
-                  Navigator.pop(ctx, [
-                    ViewConfigProperty(
-                      key: PropertyIdsMultiHADashboard.dashboardIds,
-                      type: ViewConfigPropertyType.rawBytes,
-                      rawBytes: builder.buffer,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (onDelete != null)
+                    TextButton(
+                      onPressed: onDelete,
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
+                      child: Text(loc.delete),
                     ),
-                    ViewConfigProperty(
-                      key: PropertyIdsMultiHADashboard.dashboardNames,
-                      type: ViewConfigPropertyType.string,
-                      stringValue: selectedNames.join("|||"),
-                    ),
-                  ]);
-                }
-              }
-            },
-            child: Text(loc.save),
+                  if (onDelete != null) const SizedBox(width: 8),
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: Text(loc.cancel),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (formKey.currentState?.saveAndValidate() ?? false) {
+                        final selectedIds = List<int>.from(formKey.currentState!.value['ids']);
+                        final state = context.read<BackAppWebSocketBloc>().state;
+                        if (state is BackAppWebSocketGotDashboardInfo) {
+                          final List<String> selectedNames = [];
+                          for (final id in selectedIds) {
+                            final info = state.dashboardInfo.firstWhere((i) => i.backendId == id, orElse: () => throw StateError("Selected ID not found in info list"));
+                            final name = info.name ?? "HA Dashboard: #$id";
+                            GetIt.I<HomeAssistantStore>().getOrCreatePlaceholder(id, name);
+                            selectedNames.add(name);
+                          }
+
+                          // --- BINARY PACKING FOR BACKEND ---
+                          final builder = fb.Builder(initialSize: 128);
+                          final idsOffset = builder.writeListUint64(selectedIds);
+
+                          final listBuilder = internals.DashboardListBuilder(builder);
+                          listBuilder.begin();
+                          listBuilder.addIdsOffset(idsOffset);
+                          final offset = listBuilder.finish();
+                          builder.finish(offset);
+
+                          Navigator.pop(ctx, [
+                            ViewConfigProperty(
+                              key: PropertyIdsMultiHADashboard.dashboardIds,
+                              type: ViewConfigPropertyType.rawBytes,
+                              rawBytes: builder.buffer,
+                            ),
+                            ViewConfigProperty(
+                              key: PropertyIdsMultiHADashboard.dashboardNames,
+                              type: ViewConfigPropertyType.string,
+                              stringValue: selectedNames.join("|||"),
+                            ),
+                          ]);
+                        }
+                      }
+                    },
+                    child: Text(loc.save),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

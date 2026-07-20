@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:smirror_app/dialogs/app_dialog.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:get_it/get_it.dart';
 import 'package:smirror_app/bloc/backendConnection/app_websocket_bloc.dart';
@@ -98,112 +99,134 @@ class HASingleDashboard extends WidgetTypeDefinition {
 
     return showDialog<List<ViewConfigProperty>>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(loc.haSelectDashboards),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: BlocBuilder<BackAppWebSocketBloc, BackAppWebSocketState>(
-            buildWhen: (prev, curr) => curr is BackAppWebSocketGotDashboardInfo,
-            builder: (context, state) {
-              List<dash.DashboardInfo> infos = [];
-              if (state is BackAppWebSocketGotDashboardInfo) {
-                infos = state.dashboardInfo;
-              }
-
-              if (infos.isEmpty && state is! BackAppWebSocketGotDashboardInfo) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              return FormBuilder(
-                key: formKey,
-                initialValue: {'dashboardId': initialBackendId != 0 ? initialBackendId : (infos.isNotEmpty ? infos.first.backendId.toInt() : null)},
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (infos.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text(
-                          loc.haNoDashboardsFound,
-                          style: const TextStyle(color: Colors.grey),
-                        ),
-                      )
-                    else
-                      FormBuilderDropdown<int>(
-                        name: 'dashboardId',
-                        decoration: InputDecoration(labelText: loc.widgetNameHASingleDashboard),
-                        items: [
-                          for (final info in infos)
-                            DropdownMenuItem(
-                              value: info.backendId.toInt(),
-                              child: Text(info.name ?? 'ID: ${info.backendId}'),
-                            ),
-                        ],
-                      ),
-                  ],
+      builder: (ctx) {
+        final theme = Theme.of(ctx);
+        return AppDialog(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                loc.haSelectDashboards,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
-              );
-            },
-          ),
-        ),
-        actions: [
-          if (onDelete != null)
-            TextButton(
-              onPressed: onDelete,
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: Text(loc.delete),
-            ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(loc.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (formKey.currentState?.saveAndValidate() ?? false) {
-                final selectedId = formKey.currentState!.value['dashboardId'] as int?;
+              ),
+              const SizedBox(height: 16),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: BlocBuilder<BackAppWebSocketBloc, BackAppWebSocketState>(
+                    buildWhen: (prev, curr) => curr is BackAppWebSocketGotDashboardInfo,
+                    builder: (context, state) {
+                      List<dash.DashboardInfo> infos = [];
+                      if (state is BackAppWebSocketGotDashboardInfo) {
+                        infos = state.dashboardInfo;
+                      }
 
-                if (selectedId != null) {
-                  final state = context.read<BackAppWebSocketBloc>().state;
-                  if (state is BackAppWebSocketGotDashboardInfo) {
-                    final info = state.dashboardInfo.firstWhere((i) => i.backendId == selectedId);
-                    GetIt.I<HomeAssistantStore>().getOrCreatePlaceholder(selectedId, info.name);
+                      if (infos.isEmpty && state is! BackAppWebSocketGotDashboardInfo) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                    Navigator.pop(ctx, [
-                      ViewConfigProperty(
-                        key: PropertyIdsSingleHADashboard.dashboardID,
-                        type: ViewConfigPropertyType.int,
-                        intValue: selectedId,
-                      ),
-                      ViewConfigProperty(
-                        key: PropertyIdsSingleHADashboard.dashboardName,
-                        type: ViewConfigPropertyType.string,
-                        stringValue: info.name ?? "HA Dashboard: #$selectedId",
-                      ),
-                    ]);
-                  } else {
-                    // Fallback if state is lost
-                    Navigator.pop(ctx, [
-                      ViewConfigProperty(
-                        key: PropertyIdsSingleHADashboard.dashboardID,
-                        type: ViewConfigPropertyType.int,
-                        intValue: selectedId,
-                      ),
-                      ViewConfigProperty(
-                        key: PropertyIdsSingleHADashboard.dashboardName,
-                        type: ViewConfigPropertyType.string,
-                        stringValue: "HA Dashboard: #$selectedId",
-                      ),
-                    ]);
-                  }
-                } else {
-                  Navigator.pop(ctx);
-                }
-              }
-            },
-            child: Text(loc.save),
+                      return FormBuilder(
+                        key: formKey,
+                        initialValue: {'dashboardId': initialBackendId != 0 ? initialBackendId : (infos.isNotEmpty ? infos.first.backendId.toInt() : null)},
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (infos.isEmpty)
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Text(
+                                  loc.haNoDashboardsFound,
+                                  style: const TextStyle(color: Colors.grey),
+                                ),
+                              )
+                            else
+                              FormBuilderDropdown<int>(
+                                name: 'dashboardId',
+                                decoration: InputDecoration(labelText: loc.widgetNameHASingleDashboard),
+                                items: [
+                                  for (final info in infos)
+                                    DropdownMenuItem(
+                                      value: info.backendId.toInt(),
+                                      child: Text(info.name ?? 'ID: ${info.backendId}'),
+                                    ),
+                                ],
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (onDelete != null)
+                    TextButton(
+                      onPressed: onDelete,
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
+                      child: Text(loc.delete),
+                    ),
+                  if (onDelete != null) const SizedBox(width: 8),
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: Text(loc.cancel),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (formKey.currentState?.saveAndValidate() ?? false) {
+                        final selectedId = formKey.currentState!.value['dashboardId'] as int?;
+
+                        if (selectedId != null) {
+                          final state = context.read<BackAppWebSocketBloc>().state;
+                          if (state is BackAppWebSocketGotDashboardInfo) {
+                            final info = state.dashboardInfo.firstWhere((i) => i.backendId == selectedId);
+                            GetIt.I<HomeAssistantStore>().getOrCreatePlaceholder(selectedId, info.name);
+
+                            Navigator.pop(ctx, [
+                              ViewConfigProperty(
+                                key: PropertyIdsSingleHADashboard.dashboardID,
+                                type: ViewConfigPropertyType.int,
+                                intValue: selectedId,
+                              ),
+                              ViewConfigProperty(
+                                key: PropertyIdsSingleHADashboard.dashboardName,
+                                type: ViewConfigPropertyType.string,
+                                stringValue: info.name ?? "HA Dashboard: #$selectedId",
+                              ),
+                            ]);
+                          } else {
+                            // Fallback if state is lost
+                            Navigator.pop(ctx, [
+                              ViewConfigProperty(
+                                key: PropertyIdsSingleHADashboard.dashboardID,
+                                type: ViewConfigPropertyType.int,
+                                intValue: selectedId,
+                              ),
+                              ViewConfigProperty(
+                                key: PropertyIdsSingleHADashboard.dashboardName,
+                                type: ViewConfigPropertyType.string,
+                                stringValue: "HA Dashboard: #$selectedId",
+                              ),
+                            ]);
+                          }
+                        } else {
+                          Navigator.pop(ctx);
+                        }
+                      }
+                    },
+                    child: Text(loc.save),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

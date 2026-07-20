@@ -9,6 +9,7 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smirror_app/dialogs/app_dialog.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:get_it/get_it.dart';
 import 'package:smirror_app/bloc/backendConnection/app_websocket_bloc.dart';
@@ -370,8 +371,10 @@ class _AdminScreenState extends State<AdminScreen> {
   void _showCreateUserDialog() {
     final l10n = AppLocalizations.of(context)!;
 
-    final currentUserId = GetIt.I<UserService>().currentUser?.localUserId;
-    final adminTokens = _userTokensMap[currentUserId] ?? [];
+    final currentUsername = GetIt.I<UserService>().currentUser?.username;
+    final adminUser = _users.where((u) => u.name == currentUsername).firstOrNull;
+    final adminBackendId = adminUser?.userId.toInt() ?? GetIt.I<UserService>().currentUser?.localUserId ?? 0;
+    final adminTokens = _userTokensMap[adminBackendId] ?? [];
 
     setState(() {
       _tokensAvailable['OpenWeather'] = adminTokens.any(
@@ -392,36 +395,51 @@ class _AdminScreenState extends State<AdminScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            return AlertDialog(
-              title: Text(l10n.adminCreateUserTitle),
-              content: SingleChildScrollView(
-                child: CreateUserForm(
-                  formKey: _formKey,
-                  isSubmitting: _isSubmitting,
-                  passwordVisible: _passwordVisible,
-                  confirmPasswordVisible: _confirmPasswordVisible,
-                  selectedTokens: _tokensToAssign,
-                  tokensAvailable: _tokensAvailable,
-                  onTokenChanged: (key, val) {
-                    setState(() => _tokensToAssign[key] = val);
-                    setDialogState(() {});
-                  },
-                  onPasswordVisibilityChanged: (v) {
-                    setState(() => _passwordVisible = v);
-                    setDialogState(() {});
-                  },
-                  onConfirmPasswordVisibilityChanged: (v) {
-                    setState(() => _confirmPasswordVisible = v);
-                    setDialogState(() {});
-                  },
-                  onSubmit: () {
-                    if (_submit()) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  onCancel: () => Navigator.of(context).pop(),
-                  l10n: l10n,
-                ),
+            final theme = Theme.of(context);
+            return AppDialog(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    l10n.adminCreateUserTitle,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: CreateUserForm(
+                        formKey: _formKey,
+                        isSubmitting: _isSubmitting,
+                        passwordVisible: _passwordVisible,
+                        confirmPasswordVisible: _confirmPasswordVisible,
+                        selectedTokens: _tokensToAssign,
+                        tokensAvailable: _tokensAvailable,
+                        onTokenChanged: (key, val) {
+                          setState(() => _tokensToAssign[key] = val);
+                          setDialogState(() {});
+                        },
+                        onPasswordVisibilityChanged: (v) {
+                          setState(() => _passwordVisible = v);
+                          setDialogState(() {});
+                        },
+                        onConfirmPasswordVisibilityChanged: (v) {
+                          setState(() => _confirmPasswordVisible = v);
+                          setDialogState(() {});
+                        },
+                        onSubmit: () {
+                          if (_submit()) {
+                            Navigator.of(context).pop();
+                          }
+                        },
+                        onCancel: () => Navigator.of(context).pop(),
+                        l10n: l10n,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             );
           },

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:smirror_app/dialogs/app_dialog.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:smirror_app/l10n/app_localizations.dart' show AppLocalizations;
 
@@ -29,94 +30,115 @@ Future<T?> showConfigDialog<T>({
     builder: (ctx) {
       return StatefulBuilder(
         builder: (ctx, setState) {
-          return AlertDialog(
-            title: Text(title),
-            content: FormBuilder(
-              key: formKey,
-              initialValue: initialValues ?? const {},
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    buildForm(ctx, formKey),
-                    if (errorText != null) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        errorText!,
-                        style: const TextStyle(color: Colors.red),
+          final theme = Theme.of(ctx);
+          return AppDialog(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: FormBuilder(
+                      key: formKey,
+                      initialValue: initialValues ?? const {},
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          buildForm(ctx, formKey),
+                          if (errorText != null) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              errorText!,
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                          ],
+                        ],
                       ),
-                    ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    if (onDelete != null)
+                      TextButton(
+                        onPressed: loading ? null : onDelete,
+                        style: TextButton.styleFrom(foregroundColor: Colors.red),
+                        child: Text(loc.delete),
+                      ),
+                    if (onDelete != null) const SizedBox(width: 8),
+                    TextButton(
+                      onPressed: loading ? null : () => Navigator.of(ctx).pop(null),
+                      child: Text(loc.cancel),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton(
+                      onPressed: loading
+                          ? null
+                          : () async {
+                              if (formKey.currentState?.saveAndValidate() != true) {
+                                return;
+                              }
+                              final values = formKey.currentState!.value;
+
+                              setState(() {
+                                loading = true;
+                                errorText = null;
+                              });
+
+                              try {
+                                if (preSubmit != null) {
+                                  final err = await preSubmit(
+                                    values,
+                                  ); // String? error
+                                  if (err != null) {
+                                    setState(
+                                      () => errorText = err,
+                                    ); // show top-level error
+                                    return; // keep dialog open
+                                  }
+                                }
+
+                                // onSubmit may run async key/city validation and set field errors
+                                final result = await onSubmit(values);
+
+                                final isVoidOrNull = T == Null || T == (const _TypeLiteral<void>().type);
+                                if (result == null && !isVoidOrNull) {
+                                  // keep dialog open so inline errors remain visible
+                                  return;
+                                }
+
+                                if (!ctx.mounted || !Navigator.of(ctx).canPop()) {
+                                  return;
+                                }
+                                Navigator.of(ctx).pop(result);
+                              } finally {
+                                // ensure loading is turned off even if submit throws
+                                if (ctx.mounted) {
+                                  setState(() => loading = false);
+                                }
+                              }
+                            },
+                      child: loading
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(loc.save),
+                    ),
                   ],
                 ),
-              ),
+              ],
             ),
-            actions: [
-              if (onDelete != null)
-                TextButton(
-                  onPressed: loading ? null : onDelete,
-                  style: TextButton.styleFrom(foregroundColor: Colors.red),
-                  child: Text(loc.delete),
-                ),
-              TextButton(
-                onPressed: loading ? null : () => Navigator.of(ctx).pop(null),
-                child: Text(loc.cancel),
-              ),
-              FilledButton(
-                onPressed: loading
-                    ? null
-                    : () async {
-                        if (formKey.currentState?.saveAndValidate() != true) {
-                          return;
-                        }
-                        final values = formKey.currentState!.value;
-
-                        setState(() {
-                          loading = true;
-                          errorText = null;
-                        });
-
-                        try {
-                          if (preSubmit != null) {
-                            final err = await preSubmit(
-                              values,
-                            ); // String? error
-                            if (err != null) {
-                              setState(
-                                () => errorText = err,
-                              ); // show top-level error
-                              return; // keep dialog open
-                            }
-                          }
-
-                          // onSubmit may run async key/city validation and set field errors
-                          final result = await onSubmit(values);
-
-                          final isVoidOrNull = T == Null || T == (const _TypeLiteral<void>().type);
-                          if (result == null && !isVoidOrNull) {
-                            // keep dialog open so inline errors remain visible
-                            return;
-                          }
-
-                          if (!ctx.mounted || !Navigator.of(ctx).canPop()) {
-                            return;
-                          }
-                          Navigator.of(ctx).pop(result);
-                        } finally {
-                          // ensure loading is turned off even if submit throws
-                          if (ctx.mounted) {
-                            setState(() => loading = false);
-                          }
-                        }
-                      },
-                child: loading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(loc.save),
-              ),
-            ],
           );
         },
       );

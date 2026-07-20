@@ -32,6 +32,12 @@ class TokensTable extends StatefulWidget {
 }
 
 class _TokensTableState extends State<TokensTable> {
+  int get _adminBackendId {
+    final currentUsername = GetIt.I<UserService>().currentUser?.username;
+    final adminUser = widget.users.where((u) => u.name == currentUsername).firstOrNull;
+    return adminUser?.userId.toInt() ?? GetIt.I<UserService>().currentUser?.localUserId ?? 0;
+  }
+
   Future<void> _showOpenWeatherTokenDialog() async {
     final repo = GetIt.I<OpenWeatherTokenRepository>();
     final appBloc = context.read<AppWebSocketBloc>();
@@ -73,7 +79,7 @@ class _TokensTableState extends State<TokensTable> {
         adminPassword: GetIt.I<WebSocketService>().password,
       ));
       widget.onTokenSent?.call(
-        GetIt.I<UserService>().currentUser!.localUserId,
+        _adminBackendId,
         'openweather',
       );
     }
@@ -86,6 +92,7 @@ class _TokensTableState extends State<TokensTable> {
       builder: (context) => HAConfigDialog(
         initialUrl: repo.url.isEmpty ? null : repo.url,
         onTokenSent: widget.onTokenSent,
+        userId: _adminBackendId,
       ),
     );
 

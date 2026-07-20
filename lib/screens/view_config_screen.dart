@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:smirror_app/dialogs/app_dialog.dart';
 import 'package:smirror_app/bloc/backendConnection/app_websocket_bloc.dart';
 import 'package:smirror_app/bloc/backendConnection/app_websocket_event.dart';
 import 'package:smirror_app/bloc/viewConfig/view_config_bloc.dart';
@@ -306,94 +307,113 @@ class _ViewConfigAppBar extends StatelessWidget implements PreferredSizeWidget {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
-            return AlertDialog(
-              title: Text(loc.viewSettingsTitle),
-              contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-              content: Column(
+            return AppDialog(
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Language Selection
                   Text(
-                    loc.viewLanguageLabel,
-                    style: Theme.of(ctx).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(ctx).colorScheme.primary,
-                    ),
+                    loc.viewSettingsTitle,
+                    style: Theme.of(ctx).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
-                  const SizedBox(height: 8),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(ctx).colorScheme.surfaceContainerHighest
-                          .withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: selectedLanguage,
-                        icon: const Icon(Icons.expand_more, size: 20),
-                        isDense: true,
-                        borderRadius: BorderRadius.circular(16),
-                        onChanged: (lang) {
-                          if (lang != null) {
-                            setDialogState(() => selectedLanguage = lang);
-                          }
-                        },
-                        items: _languageCodes.map((code) {
-                          return DropdownMenuItem<String>(
-                            value: code,
-                            child: Text(_getLanguageName(loc, code)),
-                          );
-                        }).toList(),
+                  const SizedBox(height: 16),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Language Selection
+                          Text(
+                            loc.viewLanguageLabel,
+                            style: Theme.of(ctx).textTheme.titleSmall?.copyWith(
+                              color: Theme.of(ctx).colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Theme.of(ctx).colorScheme.surfaceContainerHighest
+                                  .withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: selectedLanguage,
+                                icon: const Icon(Icons.expand_more, size: 20),
+                                isDense: true,
+                                borderRadius: BorderRadius.circular(16),
+                                onChanged: (lang) {
+                                  if (lang != null) {
+                                    setDialogState(() => selectedLanguage = lang);
+                                  }
+                                },
+                                items: _languageCodes.map((code) {
+                                  return DropdownMenuItem<String>(
+                                    value: code,
+                                    child: Text(_getLanguageName(loc, code)),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Theme Selection
+                          Text(
+                            loc.viewThemeLabel,
+                            style: Theme.of(ctx).textTheme.titleSmall?.copyWith(
+                              color: Theme.of(ctx).colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: List.generate(_themeIcons.length, (i) {
+                              final label = _getThemeLabel(loc, i);
+                              final icon = _themeIcons[i];
+                              final isSelected = selectedTheme == i;
+                              return ChoiceChip(
+                                avatar: Icon(icon, size: 18),
+                                label: Text(label),
+                                selected: isSelected,
+                                onSelected: (_) =>
+                                    setDialogState(() => selectedTheme = i),
+                              );
+                            }),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                   const SizedBox(height: 24),
-
-                  // Theme Selection
-                  Text(
-                    loc.viewThemeLabel,
-                    style: Theme.of(ctx).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(ctx).colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: List.generate(_themeIcons.length, (i) {
-                      final label = _getThemeLabel(loc, i);
-                      final icon = _themeIcons[i];
-                      final isSelected = selectedTheme == i;
-                      return ChoiceChip(
-                        avatar: Icon(icon, size: 18),
-                        label: Text(label),
-                        selected: isSelected,
-                        onSelected: (_) =>
-                            setDialogState(() => selectedTheme = i),
-                      );
-                    }),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: Text(loc.cancel),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton(
+                        onPressed: () {
+                          bloc.add(SetThemeEvent(selectedTheme));
+                          bloc.add(SetLanguageEvent(selectedLanguage));
+                          Navigator.of(ctx).pop();
+                        },
+                        child: Text(loc.apply),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text(loc.cancel),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    bloc.add(SetThemeEvent(selectedTheme));
-                    bloc.add(SetLanguageEvent(selectedLanguage));
-                    Navigator.of(ctx).pop();
-                  },
-                  child: Text(loc.apply),
-                ),
-              ],
             );
           },
         );
@@ -632,232 +652,210 @@ class _WidgetTypeSelectionDialogState extends State<WidgetTypeSelectionDialog> {
     final loc = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-      child: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.75,
-        width: 520,
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    return AppDialog(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ── Title ──
+          Text(
+            loc.addWidget,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // ── Search bar ──
+          Row(
             children: [
-              // ── Title ──
-              Text(
-                loc.addWidget,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // ── Search bar ──
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      autofocus: false,
-                      decoration: InputDecoration(
-                        hintText: '${loc.categoryAll}…',
-                        prefixIcon: const Icon(Icons.search),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        isDense: true,
-                      ),
-                      onChanged: (v) => setState(() => _query = v),
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  autofocus: false,
+                  decoration: InputDecoration(
+                    hintText: '${loc.categoryAll}…',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Tooltip(
-                    message: "Toggle deactivated widgets",
-                    child: IconButton(
-                      icon: Icon(
-                        _showDeactivated ? Icons.visibility : Icons.visibility_off,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      onPressed: () => setState(() => _showDeactivated = !_showDeactivated),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
                     ),
+                    isDense: true,
                   ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              // ── Category chips ──
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: _WidgetCategory.values.map((cat) {
-                    final selected = _selectedCategory == cat;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: FilterChip(
-                        avatar: Icon(
-                          _categoryIcon(cat),
-                          size: 16,
-                          color: selected
-                              ? theme.colorScheme.onSecondaryContainer
-                              : theme.colorScheme.onSurfaceVariant,
-                        ),
-                        label: Text(_categoryLabel(loc, cat)),
-                        selected: selected,
-                        onSelected: (_) =>
-                            setState(() => _selectedCategory = cat),
-                        labelStyle: TextStyle(
-                          fontSize: 12,
-                          color: selected
-                              ? theme.colorScheme.onSecondaryContainer
-                              : theme.colorScheme.onSurfaceVariant,
-                          fontWeight: selected
-                              ? FontWeight.w600
-                              : FontWeight.normal,
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                  onChanged: (v) => setState(() => _query = v),
                 ),
               ),
-              const SizedBox(height: 12),
-              const Divider(height: 1),
-              const SizedBox(height: 8),
-
-              // ── Widget list ──
-              Flexible(
-                child: ListenableBuilder(
-                  listenable: _tokenStatuses,
-                  builder: (context, _) {
-                    final all = WidgetTypeRegistry.getAvailableTypes(context);
-                    final filtered = all.entries.where((e) {
-                      final typeId = e.key;
-                      final typeDef = WidgetTypeRegistry.get(typeId);
-                      final hasToken = _isTokenPresent(typeDef?.requiredTokenId);
-                      if (!_showDeactivated && !hasToken) return false;
-                      final cat = _widgetCategories[typeId] ?? _WidgetCategory.general;
-                      final matchesCategory =
-                          _selectedCategory == _WidgetCategory.all || cat == _selectedCategory;
-                      final matchesSearch =
-                          _query.isEmpty ||
-                          e.value.toLowerCase().contains(_query.toLowerCase());
-                      return matchesCategory && matchesSearch;
-                    }).toList();
-
-                    if (filtered.isEmpty) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 32),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.search_off,
-                                size: 48,
-                                color: theme.colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.4),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'No widgets found',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-
-                    return ListView.separated(
-                      shrinkWrap: true,
-                      itemCount: filtered.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 8),
-                      itemBuilder: (context, index) {
-                        final typeId = filtered[index].key;
-                        final name = filtered[index].value;
-                        final cat =
-                            _widgetCategories[typeId] ??
-                            _WidgetCategory.general;
-                        final typeDef = WidgetTypeRegistry.get(typeId);
-                        final hasToken = _isTokenPresent(typeDef?.requiredTokenId);
-
-                        final listTile = ListTile(
-                          enabled: hasToken,
-                          leading: CircleAvatar(
-                            backgroundColor: hasToken
-                                ? theme.colorScheme.primary.withValues(alpha: 0.12)
-                                : theme.colorScheme.onSurface.withValues(alpha: 0.12),
-                            child: Icon(
-                              _categoryIcon(cat),
-                              size: 20,
-                              color: hasToken
-                                  ? theme.colorScheme.primary
-                                  : theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          title: Text(
-                            name,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: hasToken ? null : theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          subtitle: Text(
-                            _categoryLabel(loc, cat),
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          trailing: Icon(
-                            Icons.add_circle_outline,
-                            color: hasToken
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.onSurfaceVariant,
-                          ),
-                          onTap: hasToken ? () => Navigator.of(context).pop(typeId) : null,
-                        );
-
-                        return Card(
-                          elevation: 0,
-                          margin: EdgeInsets.zero,
-                          color: theme.colorScheme.surfaceContainerHighest
-                              .withValues(alpha: 0.45),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: hasToken
-                              ? listTile
-                              : Tooltip(
-                                  message:
-                                      "Please add the ${typeDef?.requiredTokenId} token as an admin to use this widget.",
-                                  child: listTile,
-                                ),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              // ── Cancel button ──
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(loc.cancel),
+              const SizedBox(width: 8),
+              Tooltip(
+                message: "Toggle deactivated widgets",
+                child: IconButton(
+                  icon: Icon(
+                    _showDeactivated ? Icons.visibility : Icons.visibility_off,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  onPressed: () => setState(() => _showDeactivated = !_showDeactivated),
                 ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 12),
+
+          // ── Category chips ──
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: _WidgetCategory.values.map((cat) {
+                final selected = _selectedCategory == cat;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: FilterChip(
+                    avatar: Icon(
+                      _categoryIcon(cat),
+                      size: 16,
+                      color: selected
+                          ? theme.colorScheme.onSecondaryContainer
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                    label: Text(_categoryLabel(loc, cat)),
+                    selected: selected,
+                    onSelected: (_) =>
+                        setState(() => _selectedCategory = cat),
+                    labelStyle: TextStyle(
+                      fontSize: 12,
+                      color: selected
+                          ? theme.colorScheme.onSecondaryContainer
+                          : theme.colorScheme.onSurfaceVariant,
+                      fontWeight: selected
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Divider(height: 1),
+          const SizedBox(height: 8),
+
+          // ── Widget list ──
+          Flexible(
+            child: ListenableBuilder(
+              listenable: _tokenStatuses,
+              builder: (context, _) {
+                final all = WidgetTypeRegistry.getAvailableTypes(context);
+                final filtered = all.entries.where((e) {
+                  final typeId = e.key;
+                  final typeDef = WidgetTypeRegistry.get(typeId);
+                  final hasToken = _isTokenPresent(typeDef?.requiredTokenId);
+                  if (!_showDeactivated && !hasToken) return false;
+                  final cat = _widgetCategories[typeId] ?? _WidgetCategory.general;
+                  final matchesCategory =
+                      _selectedCategory == _WidgetCategory.all || cat == _selectedCategory;
+                  final matchesSearch =
+                      _query.isEmpty ||
+                      e.value.toLowerCase().contains(_query.toLowerCase());
+                  return matchesCategory && matchesSearch;
+                }).toList();
+
+                if (filtered.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Text(
+                        'No widgets found',
+                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                      ),
+                    ),
+                  );
+                }
+
+                return ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: filtered.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  itemBuilder: (ctx, index) {
+                    final e = filtered[index];
+                    final typeId = e.key;
+                    final name = e.value;
+                    final typeDef = WidgetTypeRegistry.get(typeId);
+                    final hasToken = _isTokenPresent(typeDef?.requiredTokenId);
+                    final cat = _widgetCategories[typeId] ?? _WidgetCategory.general;
+
+                    final listTile = ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      leading: CircleAvatar(
+                        backgroundColor: hasToken
+                            ? theme.colorScheme.primaryContainer
+                            : theme.colorScheme.surfaceContainerHighest,
+                        child: Icon(
+                          _categoryIcon(cat),
+                          color: hasToken
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      title: Text(
+                        name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: hasToken ? null : theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      subtitle: Text(
+                        _categoryLabel(loc, cat),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.add_circle_outline,
+                        color: hasToken
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                      onTap: hasToken ? () => Navigator.of(context).pop(typeId) : null,
+                    );
+
+                    return Card(
+                      elevation: 0,
+                      margin: EdgeInsets.zero,
+                      color: theme.colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.45),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: hasToken
+                          ? listTile
+                          : Tooltip(
+                              message:
+                                  "Please add the ${typeDef?.requiredTokenId} token as an admin to use this widget.",
+                              child: listTile,
+                            ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // ── Cancel button ──
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(loc.cancel),
+            ),
+          ),
+        ],
       ),
     );
   }

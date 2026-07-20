@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smirror_app/dialogs/app_dialog.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:get_it/get_it.dart';
@@ -70,76 +71,96 @@ class _LoginDialogState extends State<LoginDialog> {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
 
-    return AlertDialog(
-      title: Text(loc.changeUserLogin),
-      content: SizedBox(
-        width: 400,
-        child: FormBuilder(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (_errorMessage != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: Text(
-                    _errorMessage!,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                      fontWeight: FontWeight.bold,
+    final theme = Theme.of(context);
+
+    return AppDialog(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            loc.changeUserLogin,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Flexible(
+            child: SingleChildScrollView(
+              child: FormBuilder(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: Text(
+                          _errorMessage!,
+                          style: TextStyle(
+                            color: theme.colorScheme.error,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    FormBuilderTextField(
+                      name: 'username',
+                      decoration: InputDecoration(
+                        labelText: loc.username,
+                        prefixIcon: const Icon(Icons.person),
+                      ),
+                      validator: FormBuilderValidators.required(),
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    FormBuilderTextField(
+                      name: 'password',
+                      obscureText: _obscurePassword,
+                      decoration: InputDecoration(
+                        labelText: loc.password,
+                        prefixIcon: const Icon(Icons.lock),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
+                      ),
+                      validator: FormBuilderValidators.required(),
+                      onSubmitted: (_) => _login(),
+                    ),
+                  ],
                 ),
-              FormBuilderTextField(
-                name: 'username',
-                decoration: InputDecoration(
-                  labelText: loc.username,
-                  prefixIcon: const Icon(Icons.person),
-                ),
-                validator: FormBuilderValidators.required(),
               ),
-              const SizedBox(height: 16),
-              FormBuilderTextField(
-                name: 'password',
-                obscureText: _obscurePassword,
-                decoration: InputDecoration(
-                  labelText: loc.password,
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
-                  ),
-                ),
-                validator: FormBuilderValidators.required(),
-                onSubmitted: (_) => _login(),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+                child: Text(loc.cancel),
+              ),
+              const SizedBox(width: 8),
+              FilledButton(
+                onPressed: _isLoading ? null : _login,
+                child: _isLoading 
+                  ? const SizedBox(
+                      width: 16, height: 16, 
+                      child: CircularProgressIndicator(strokeWidth: 2)
+                    ) 
+                  : Text(loc.apply),
               ),
             ],
           ),
-        ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-          child: Text(loc.cancel),
-        ),
-        FilledButton(
-          onPressed: _isLoading ? null : _login,
-          child: _isLoading 
-            ? const SizedBox(
-                width: 16, height: 16, 
-                child: CircularProgressIndicator(strokeWidth: 2)
-              ) 
-            : Text(loc.apply),
-        ),
-      ],
     );
   }
 }
