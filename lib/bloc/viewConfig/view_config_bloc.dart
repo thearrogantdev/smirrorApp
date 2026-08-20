@@ -37,6 +37,7 @@ class ViewConfigBloc extends Bloc<ViewConfigEvent, ViewConfigState> {
     on<ToggleSnapEvent>(_onToggleSnapEvent);
     on<SetThemeEvent>(_onSetTheme);
     on<SetLanguageEvent>(_onSetLanguage);
+    on<ReloadViewConfigEvent>(_onReloadViewConfig);
     on<UserChangedEvent>(_onUserChanged);
 
     _userSub = _userService.onUserChanged.listen((u) async {
@@ -46,6 +47,44 @@ class ViewConfigBloc extends Bloc<ViewConfigEvent, ViewConfigState> {
     final cur = _userService.currentUser;
     if (cur != null) {
       add(UserChangedEvent(_userService.currentUser));
+    }
+  }
+
+  Future<void> _onReloadViewConfig(
+    ReloadViewConfigEvent event,
+    Emitter<ViewConfigState> emit,
+  ) async {
+    final u = _userService.currentUser;
+    if (u == null) {
+      emit(state.copyWith(pages: [], currentPageIndex: 0));
+      return;
+    }
+
+    try {
+      final userId = u.localUserId;
+      final views = _repository.getViewsForUser(userId);
+
+      int viewId;
+      if (views.isEmpty) {
+        viewId = _repository.createViewForUser(userId);
+      } else {
+        viewId = views.first.id;
+      }
+
+      _viewId = viewId;
+      final pages = _repository.loadPagesForView(viewId);
+      final theme = _repository.getThemeForView(viewId);
+      final language = _repository.getLanguageForView(viewId);
+      emit(
+        state.copyWith(
+          pages: pages,
+          currentPageIndex: 0,
+          selectedTheme: theme,
+          selectedLanguage: language,
+        ),
+      );
+    } catch (e) {
+      // Handle errors here
     }
   }
 

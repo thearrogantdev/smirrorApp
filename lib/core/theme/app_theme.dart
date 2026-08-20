@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
@@ -28,7 +28,7 @@ class AppTheme {
     );
 
     return baseTheme.copyWith(
-      textTheme: GoogleFonts.outfitTextTheme(baseTheme.textTheme),
+      // textTheme: GoogleFonts.robotoTextTheme(baseTheme.textTheme), TODO: enable when google font is upgraded
       appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0,
@@ -83,9 +83,9 @@ class AppTheme {
     );
 
     return baseTheme.copyWith(
-      textTheme: GoogleFonts.outfitTextTheme(
-        baseTheme.textTheme,
-      ).apply(bodyColor: const Color(0xFFEAEAEA), displayColor: Colors.white),
+      // textTheme: GoogleFonts.robotoTextTheme(
+      //   baseTheme.textTheme,
+      // ).apply(bodyColor: const Color(0xFFEAEAEA), displayColor: Colors.white),
       appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0,

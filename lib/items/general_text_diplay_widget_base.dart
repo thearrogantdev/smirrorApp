@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -22,6 +22,7 @@ abstract class GeneralTextDisplayWidgetBase extends WidgetTypeDefinition {
     required super.typeId,
     required super.nameBuilder,
     super.defaultSize = const Size(150, 60),
+    super.isExperimental = false,
   });
 
   @override

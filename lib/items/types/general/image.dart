@@ -3,7 +3,7 @@ import 'dart:convert' show base64Decode;
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:get_it/get_it.dart';
 import 'package:smirror_app/database/binary_database.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:form_builder_image_picker/form_builder_image_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:smirror_app/bloc/viewConfig/view_config_models.dart';

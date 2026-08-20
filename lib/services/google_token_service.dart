@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:googleapis_auth/auth_io.dart' as gauth;
 import 'package:http/http.dart' as http;
 import 'package:injectable/injectable.dart';
@@ -238,9 +238,7 @@ class GoogleTokenRepository extends TokenProvider<GoogleValidationResult> {
     if (!fromUserGesture) return null;
     try {
       await user.authorizationClient.authorizeScopes(scopes);
-      //final auth = user.authentication;
-
-      return user.authorizationClient.authorizationHeaders(scopes);
+      return await user.authorizationClient.authorizationHeaders(scopes);
     } catch (_) {
       return null;
     }

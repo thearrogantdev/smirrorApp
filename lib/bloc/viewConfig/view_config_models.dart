@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smirror_wire/generated/view_view_structure_generated.dart' as fbm;
 
 enum ViewConfigPropertyType { none, string, int, float, bool, rawBytes }

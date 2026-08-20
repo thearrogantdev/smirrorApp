@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:smirror_app/dialogs/app_dialog.dart';
@@ -10,6 +10,7 @@ import 'package:smirror_app/bloc/viewConfig/view_config_models.dart';
 import 'package:smirror_app/bloc/viewConfig/view_config_state.dart';
 import 'package:smirror_app/items/common_canvas.dart';
 import 'package:smirror_app/l10n/app_localizations.dart';
+import 'package:smirror_app/bloc/setup_cubit.dart';
 import 'package:smirror_app/items/widget_type_registry.dart'
     show WidgetTypeRegistry;
 import 'package:get_it/get_it.dart';
@@ -18,6 +19,8 @@ import 'package:smirror_app/services/google_token_service.dart';
 import 'package:smirror_app/services/home_assistant_api_service.dart';
 import 'package:smirror_app/services/open_weather_validation_service.dart';
 import 'package:smirror_wire/constants/widget_ids.dart';
+import 'package:smirror_wire/generated/app_back_app_back_generated.dart'
+    as appmsg;
 
 @RoutePage()
 class ViewConfigScreen extends StatefulWidget {
@@ -421,6 +424,37 @@ class _ViewConfigAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
+  Future<void> _showUpdateViewDialog(
+    BuildContext context,
+    AppLocalizations loc,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(loc.syncAvailableTitle),
+        content: Text(loc.syncAvailableMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(loc.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(loc.update),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      context.read<AppWebSocketBloc>().add(
+        AppWebSocketSendSimpleCommandRequested(
+          commandType: appmsg.AppSimpleCommandType.GET_CURRENT_USER_VIEW,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final viewConfigState = context.watch<ViewConfigBloc>().state;
@@ -432,7 +466,12 @@ class _ViewConfigAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Text(loc.pageLabel(pageIndex + 1, totalPages)),
       actions: [
         IconButton(
-          icon: Icon(Icons.upload),
+          icon: const Icon(Icons.download),
+          tooltip: loc.update,
+          onPressed: () => _showUpdateViewDialog(context, loc),
+        ),
+        IconButton(
+          icon: const Icon(Icons.upload),
           tooltip: loc.upload,
           onPressed: () => context.read<AppWebSocketBloc>().add(
             AppWebSocketSendViewRequest(viewConfigPages),
@@ -541,6 +580,8 @@ const Map<int, _WidgetCategory> _widgetCategories = {
   // Weather
   2: _WidgetCategory.weather, // Current Weather
   3: _WidgetCategory.weather, // Forecast
+  19: _WidgetCategory.weather, // Rain Radar
+  // WidgetIds.rainForecast: _WidgetCategory.weather, // Rain Forecast
   // Calendar
   4: _WidgetCategory.calendar, // Calendar Upcoming
   17: _WidgetCategory.calendar, // Calendar 2 Days
@@ -651,6 +692,7 @@ class _WidgetTypeSelectionDialogState extends State<WidgetTypeSelectionDialog> {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final isDeveloperMode = context.watch<SetupCubit>().state.developerMode;
 
     return AppDialog(
       child: Column(
@@ -750,6 +792,8 @@ class _WidgetTypeSelectionDialogState extends State<WidgetTypeSelectionDialog> {
                 final filtered = all.entries.where((e) {
                   final typeId = e.key;
                   final typeDef = WidgetTypeRegistry.get(typeId);
+                  final isExperimental = typeDef?.isExperimental ?? false;
+                  if (!isDeveloperMode && isExperimental) return false;
                   final hasToken = _isTokenPresent(typeDef?.requiredTokenId);
                   if (!_showDeactivated && !hasToken) return false;
                   final cat = _widgetCategories[typeId] ?? _WidgetCategory.general;
@@ -782,6 +826,7 @@ class _WidgetTypeSelectionDialogState extends State<WidgetTypeSelectionDialog> {
                     final typeId = e.key;
                     final name = e.value;
                     final typeDef = WidgetTypeRegistry.get(typeId);
+                    final isExperimental = typeDef?.isExperimental ?? false;
                     final hasToken = _isTokenPresent(typeDef?.requiredTokenId);
                     final cat = _widgetCategories[typeId] ?? _WidgetCategory.general;
 
@@ -801,12 +846,30 @@ class _WidgetTypeSelectionDialogState extends State<WidgetTypeSelectionDialog> {
                               : theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      title: Text(
-                        name,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: hasToken ? null : theme.colorScheme.onSurfaceVariant,
-                        ),
+                      title: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              name,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: hasToken ? null : theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                          if (isExperimental) ...[
+                            const SizedBox(width: 6),
+                            Tooltip(
+                              message: loc.experimentalWidget,
+                              child: Icon(
+                                Icons.science_outlined,
+                                size: 16,
+                                color: theme.colorScheme.tertiary,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       subtitle: Text(
                         _categoryLabel(loc, cat),

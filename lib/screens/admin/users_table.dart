@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:get_it/get_it.dart';
 import 'package:smirror_wire/generated/back_app_back_app_generated.dart' as backmsg;
 import 'package:smirror_wire/generated/permission_generated.dart';

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:get_it/get_it.dart';
@@ -231,7 +231,7 @@ class _LandingScreenState extends State<LandingScreen> {
                         const SizedBox(height: 24),
                         Text(
                           loc.appTitle,
-                          style: GoogleFonts.outfit(
+                          style: GoogleFonts.roboto(
                             fontSize: 30,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 0.5,
@@ -241,7 +241,7 @@ class _LandingScreenState extends State<LandingScreen> {
                         const SizedBox(height: 8),
                         Text(
                           "Smart Mirror Web Dashboard",
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.roboto(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                             color: isDark ? Colors.white60 : Colors.black54,

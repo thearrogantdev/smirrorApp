@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smirror_app/bloc/viewConfig/view_config_models.dart';
 import 'package:smirror_wire/constants/widget_ids.dart';
 import 'package:smirror_app/items/widget_type_definition.dart';
@@ -32,16 +32,5 @@ class CataasImageWidgetType extends WidgetTypeDefinition {
         },
       ),
     );
-  }
-
-  @override
-  Future<List<ViewConfigProperty>?> promptForProperties(
-    BuildContext context, {
-    List<ViewConfigProperty>? initial,
-    VoidCallback? onDelete,
-  }) {
-    // Since there are no properties to configure,
-    // we return the default (empty) list immediately.
-    return Future.value(createDefaultProperties());
   }
 }

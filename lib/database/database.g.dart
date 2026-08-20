@@ -384,6 +384,9 @@ class $UsersTable extends Users with TableInfo<$UsersTable, UserRow> {
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES devices (id) ON DELETE CASCADE',
+    ),
   );
   @override
   List<GeneratedColumn> get $columns => [id, username, deviceId];
@@ -636,6 +639,9 @@ class $ViewsTable extends Views with TableInfo<$ViewsTable, ViewRow> {
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
   );
   static const VerificationMeta _timestampMeta = const VerificationMeta(
     'timestamp',
@@ -1066,6 +1072,9 @@ class $PagesTable extends Pages with TableInfo<$PagesTable, PageRow> {
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES views (id) ON DELETE CASCADE',
+    ),
   );
   @override
   List<GeneratedColumn> get $columns => [id, number, viewId];
@@ -1349,6 +1358,9 @@ class $WidgetsTable extends Widgets with TableInfo<$WidgetsTable, WidgetRow> {
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES pages (id) ON DELETE CASCADE',
+    ),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -1747,6 +1759,9 @@ class $WidgetPropertiesTable extends WidgetProperties
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES widgets (id) ON DELETE CASCADE',
+    ),
   );
   @override
   List<GeneratedColumn> get $columns => [id, keyId, type, widgetId];
@@ -2022,6 +2037,9 @@ class $WidgetPropertyStringsTable extends WidgetPropertyStrings
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES widget_properties (id) ON DELETE CASCADE',
+    ),
   );
   static const VerificationMeta _valueMeta = const VerificationMeta('value');
   @override
@@ -2280,6 +2298,9 @@ class $WidgetPropertyIntsTable extends WidgetPropertyInts
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES widget_properties (id) ON DELETE CASCADE',
+    ),
   );
   static const VerificationMeta _valueMeta = const VerificationMeta('value');
   @override
@@ -2533,6 +2554,9 @@ class $WidgetPropertyFloatsTable extends WidgetPropertyFloats
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES widget_properties (id) ON DELETE CASCADE',
+    ),
   );
   static const VerificationMeta _valueMeta = const VerificationMeta('value');
   @override
@@ -2786,6 +2810,9 @@ class $WidgetPropertyBoolsTable extends WidgetPropertyBools
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES widget_properties (id) ON DELETE CASCADE',
+    ),
   );
   static const VerificationMeta _valueMeta = const VerificationMeta('value');
   @override
@@ -3043,6 +3070,9 @@ class $WidgetPropertyRawBytesListTable extends WidgetPropertyRawBytesList
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES widget_properties (id) ON DELETE CASCADE',
+    ),
   );
   static const VerificationMeta _valueMeta = const VerificationMeta('value');
   @override
@@ -3955,6 +3985,9 @@ class $DashboardItemsTable extends DashboardItems
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES dashboards (id) ON DELETE CASCADE',
+    ),
   );
   static const VerificationMeta _valueFontSizeMeta = const VerificationMeta(
     'valueFontSize',
@@ -4688,6 +4721,9 @@ class $ThresholdConfigsTable extends ThresholdConfigs
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES dashboard_items (id) ON DELETE CASCADE',
+    ),
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -5038,6 +5074,95 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     dashboardItems,
     thresholdConfigs,
   ];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'devices',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('users', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('views', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'views',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('pages', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'pages',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('widgets', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'widgets',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('widget_properties', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'widget_properties',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('widget_property_strings', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'widget_properties',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('widget_property_ints', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'widget_properties',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('widget_property_floats', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'widget_properties',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('widget_property_bools', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'widget_properties',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [
+        TableUpdate('widget_property_raw_bytes_list', kind: UpdateKind.delete),
+      ],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'dashboards',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('dashboard_items', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'dashboard_items',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('threshold_configs', kind: UpdateKind.delete)],
+    ),
+  ]);
 }
 
 typedef $$DevicesTableCreateCompanionBuilder =
@@ -5056,6 +5181,30 @@ typedef $$DevicesTableUpdateCompanionBuilder =
       Value<String> ip,
       Value<int> port,
     });
+
+final class $$DevicesTableReferences
+    extends BaseReferences<_$AppDatabase, $DevicesTable, DeviceRow> {
+  $$DevicesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$UsersTable, List<UserRow>> _usersRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.users,
+    aliasName: 'devices__id__users__device_id',
+  );
+
+  $$UsersTableProcessedTableManager get usersRefs {
+    final manager = $$UsersTableTableManager(
+      $_db,
+      $_db.users,
+    ).filter((f) => f.deviceId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_usersRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
 
 class $$DevicesTableFilterComposer
     extends Composer<_$AppDatabase, $DevicesTable> {
@@ -5090,6 +5239,31 @@ class $$DevicesTableFilterComposer
     column: $table.port,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> usersRefs(
+    Expression<bool> Function($$UsersTableFilterComposer f) f,
+  ) {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.deviceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableFilterComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$DevicesTableOrderingComposer
@@ -5152,6 +5326,31 @@ class $$DevicesTableAnnotationComposer
 
   GeneratedColumn<int> get port =>
       $composableBuilder(column: $table.port, builder: (column) => column);
+
+  Expression<T> usersRefs<T extends Object>(
+    Expression<T> Function($$UsersTableAnnotationComposer a) f,
+  ) {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.deviceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$DevicesTableTableManager
@@ -5165,9 +5364,9 @@ class $$DevicesTableTableManager
           $$DevicesTableAnnotationComposer,
           $$DevicesTableCreateCompanionBuilder,
           $$DevicesTableUpdateCompanionBuilder,
-          (DeviceRow, BaseReferences<_$AppDatabase, $DevicesTable, DeviceRow>),
+          (DeviceRow, $$DevicesTableReferences),
           DeviceRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool usersRefs})
         > {
   $$DevicesTableTableManager(_$AppDatabase db, $DevicesTable table)
     : super(
@@ -5209,9 +5408,40 @@ class $$DevicesTableTableManager
                 port: port,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$DevicesTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({usersRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (usersRefs) db.users],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (usersRefs)
+                    await $_getPrefetchedData<
+                      DeviceRow,
+                      $DevicesTable,
+                      UserRow
+                    >(
+                      currentTable: table,
+                      referencedTable: $$DevicesTableReferences._usersRefsTable(
+                        db,
+                      ),
+                      managerFromTypedResult: (p0) =>
+                          $$DevicesTableReferences(db, table, p0).usersRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.deviceId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -5226,9 +5456,9 @@ typedef $$DevicesTableProcessedTableManager =
       $$DevicesTableAnnotationComposer,
       $$DevicesTableCreateCompanionBuilder,
       $$DevicesTableUpdateCompanionBuilder,
-      (DeviceRow, BaseReferences<_$AppDatabase, $DevicesTable, DeviceRow>),
+      (DeviceRow, $$DevicesTableReferences),
       DeviceRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool usersRefs})
     >;
 typedef $$UsersTableCreateCompanionBuilder =
     UsersCompanion Function({
@@ -5242,6 +5472,47 @@ typedef $$UsersTableUpdateCompanionBuilder =
       Value<String> username,
       Value<int> deviceId,
     });
+
+final class $$UsersTableReferences
+    extends BaseReferences<_$AppDatabase, $UsersTable, UserRow> {
+  $$UsersTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $DevicesTable _deviceIdTable(_$AppDatabase db) =>
+      db.devices.createAlias('users__device_id__devices__id');
+
+  $$DevicesTableProcessedTableManager get deviceId {
+    final $_column = $_itemColumn<int>('device_id')!;
+
+    final manager = $$DevicesTableTableManager(
+      $_db,
+      $_db.devices,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_deviceIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$ViewsTable, List<ViewRow>> _viewsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.views,
+    aliasName: 'users__id__views__user_id',
+  );
+
+  $$ViewsTableProcessedTableManager get viewsRefs {
+    final manager = $$ViewsTableTableManager(
+      $_db,
+      $_db.views,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_viewsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
 
 class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
   $$UsersTableFilterComposer({
@@ -5261,10 +5532,53 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get deviceId => $composableBuilder(
-    column: $table.deviceId,
-    builder: (column) => ColumnFilters(column),
-  );
+  $$DevicesTableFilterComposer get deviceId {
+    final $$DevicesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.deviceId,
+      referencedTable: $db.devices,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DevicesTableFilterComposer(
+            $db: $db,
+            $table: $db.devices,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> viewsRefs(
+    Expression<bool> Function($$ViewsTableFilterComposer f) f,
+  ) {
+    final $$ViewsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.views,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ViewsTableFilterComposer(
+            $db: $db,
+            $table: $db.views,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$UsersTableOrderingComposer
@@ -5286,10 +5600,28 @@ class $$UsersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get deviceId => $composableBuilder(
-    column: $table.deviceId,
-    builder: (column) => ColumnOrderings(column),
-  );
+  $$DevicesTableOrderingComposer get deviceId {
+    final $$DevicesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.deviceId,
+      referencedTable: $db.devices,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DevicesTableOrderingComposer(
+            $db: $db,
+            $table: $db.devices,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$UsersTableAnnotationComposer
@@ -5307,8 +5639,53 @@ class $$UsersTableAnnotationComposer
   GeneratedColumn<String> get username =>
       $composableBuilder(column: $table.username, builder: (column) => column);
 
-  GeneratedColumn<int> get deviceId =>
-      $composableBuilder(column: $table.deviceId, builder: (column) => column);
+  $$DevicesTableAnnotationComposer get deviceId {
+    final $$DevicesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.deviceId,
+      referencedTable: $db.devices,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DevicesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.devices,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> viewsRefs<T extends Object>(
+    Expression<T> Function($$ViewsTableAnnotationComposer a) f,
+  ) {
+    final $$ViewsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.views,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ViewsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.views,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$UsersTableTableManager
@@ -5322,9 +5699,9 @@ class $$UsersTableTableManager
           $$UsersTableAnnotationComposer,
           $$UsersTableCreateCompanionBuilder,
           $$UsersTableUpdateCompanionBuilder,
-          (UserRow, BaseReferences<_$AppDatabase, $UsersTable, UserRow>),
+          (UserRow, $$UsersTableReferences),
           UserRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool deviceId, bool viewsRefs})
         > {
   $$UsersTableTableManager(_$AppDatabase db, $UsersTable table)
     : super(
@@ -5358,9 +5735,65 @@ class $$UsersTableTableManager
                 deviceId: deviceId,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) =>
+                    (e.readTable(table), $$UsersTableReferences(db, table, e)),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({deviceId = false, viewsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (viewsRefs) db.views],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (deviceId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.deviceId,
+                                referencedTable: $$UsersTableReferences
+                                    ._deviceIdTable(db),
+                                referencedColumn: $$UsersTableReferences
+                                    ._deviceIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (viewsRefs)
+                    await $_getPrefetchedData<UserRow, $UsersTable, ViewRow>(
+                      currentTable: table,
+                      referencedTable: $$UsersTableReferences._viewsRefsTable(
+                        db,
+                      ),
+                      managerFromTypedResult: (p0) =>
+                          $$UsersTableReferences(db, table, p0).viewsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.userId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -5375,9 +5808,9 @@ typedef $$UsersTableProcessedTableManager =
       $$UsersTableAnnotationComposer,
       $$UsersTableCreateCompanionBuilder,
       $$UsersTableUpdateCompanionBuilder,
-      (UserRow, BaseReferences<_$AppDatabase, $UsersTable, UserRow>),
+      (UserRow, $$UsersTableReferences),
       UserRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool deviceId, bool viewsRefs})
     >;
 typedef $$ViewsTableCreateCompanionBuilder =
     ViewsCompanion Function({
@@ -5400,6 +5833,47 @@ typedef $$ViewsTableUpdateCompanionBuilder =
       Value<bool> dirty,
     });
 
+final class $$ViewsTableReferences
+    extends BaseReferences<_$AppDatabase, $ViewsTable, ViewRow> {
+  $$ViewsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $UsersTable _userIdTable(_$AppDatabase db) =>
+      db.users.createAlias('views__user_id__users__id');
+
+  $$UsersTableProcessedTableManager get userId {
+    final $_column = $_itemColumn<int>('user_id')!;
+
+    final manager = $$UsersTableTableManager(
+      $_db,
+      $_db.users,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$PagesTable, List<PageRow>> _pagesRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.pages,
+    aliasName: 'views__id__pages__view_id',
+  );
+
+  $$PagesTableProcessedTableManager get pagesRefs {
+    final manager = $$PagesTableTableManager(
+      $_db,
+      $_db.pages,
+    ).filter((f) => f.viewId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_pagesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
 class $$ViewsTableFilterComposer extends Composer<_$AppDatabase, $ViewsTable> {
   $$ViewsTableFilterComposer({
     required super.$db,
@@ -5415,11 +5889,6 @@ class $$ViewsTableFilterComposer extends Composer<_$AppDatabase, $ViewsTable> {
 
   ColumnFilters<int> get backendId => $composableBuilder(
     column: $table.backendId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get userId => $composableBuilder(
-    column: $table.userId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5442,6 +5911,54 @@ class $$ViewsTableFilterComposer extends Composer<_$AppDatabase, $ViewsTable> {
     column: $table.dirty,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$UsersTableFilterComposer get userId {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableFilterComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> pagesRefs(
+    Expression<bool> Function($$PagesTableFilterComposer f) f,
+  ) {
+    final $$PagesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pages,
+      getReferencedColumn: (t) => t.viewId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PagesTableFilterComposer(
+            $db: $db,
+            $table: $db.pages,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ViewsTableOrderingComposer
@@ -5460,11 +5977,6 @@ class $$ViewsTableOrderingComposer
 
   ColumnOrderings<int> get backendId => $composableBuilder(
     column: $table.backendId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get userId => $composableBuilder(
-    column: $table.userId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -5487,6 +5999,29 @@ class $$ViewsTableOrderingComposer
     column: $table.dirty,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$UsersTableOrderingComposer get userId {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ViewsTableAnnotationComposer
@@ -5504,9 +6039,6 @@ class $$ViewsTableAnnotationComposer
   GeneratedColumn<int> get backendId =>
       $composableBuilder(column: $table.backendId, builder: (column) => column);
 
-  GeneratedColumn<int> get userId =>
-      $composableBuilder(column: $table.userId, builder: (column) => column);
-
   GeneratedColumn<int> get timestamp =>
       $composableBuilder(column: $table.timestamp, builder: (column) => column);
 
@@ -5518,6 +6050,54 @@ class $$ViewsTableAnnotationComposer
 
   GeneratedColumn<bool> get dirty =>
       $composableBuilder(column: $table.dirty, builder: (column) => column);
+
+  $$UsersTableAnnotationComposer get userId {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> pagesRefs<T extends Object>(
+    Expression<T> Function($$PagesTableAnnotationComposer a) f,
+  ) {
+    final $$PagesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pages,
+      getReferencedColumn: (t) => t.viewId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PagesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.pages,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ViewsTableTableManager
@@ -5531,9 +6111,9 @@ class $$ViewsTableTableManager
           $$ViewsTableAnnotationComposer,
           $$ViewsTableCreateCompanionBuilder,
           $$ViewsTableUpdateCompanionBuilder,
-          (ViewRow, BaseReferences<_$AppDatabase, $ViewsTable, ViewRow>),
+          (ViewRow, $$ViewsTableReferences),
           ViewRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool userId, bool pagesRefs})
         > {
   $$ViewsTableTableManager(_$AppDatabase db, $ViewsTable table)
     : super(
@@ -5583,9 +6163,65 @@ class $$ViewsTableTableManager
                 dirty: dirty,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) =>
+                    (e.readTable(table), $$ViewsTableReferences(db, table, e)),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({userId = false, pagesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (pagesRefs) db.pages],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (userId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.userId,
+                                referencedTable: $$ViewsTableReferences
+                                    ._userIdTable(db),
+                                referencedColumn: $$ViewsTableReferences
+                                    ._userIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (pagesRefs)
+                    await $_getPrefetchedData<ViewRow, $ViewsTable, PageRow>(
+                      currentTable: table,
+                      referencedTable: $$ViewsTableReferences._pagesRefsTable(
+                        db,
+                      ),
+                      managerFromTypedResult: (p0) =>
+                          $$ViewsTableReferences(db, table, p0).pagesRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.viewId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -5600,9 +6236,9 @@ typedef $$ViewsTableProcessedTableManager =
       $$ViewsTableAnnotationComposer,
       $$ViewsTableCreateCompanionBuilder,
       $$ViewsTableUpdateCompanionBuilder,
-      (ViewRow, BaseReferences<_$AppDatabase, $ViewsTable, ViewRow>),
+      (ViewRow, $$ViewsTableReferences),
       ViewRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool userId, bool pagesRefs})
     >;
 typedef $$PagesTableCreateCompanionBuilder =
     PagesCompanion Function({
@@ -5616,6 +6252,47 @@ typedef $$PagesTableUpdateCompanionBuilder =
       Value<int> number,
       Value<int> viewId,
     });
+
+final class $$PagesTableReferences
+    extends BaseReferences<_$AppDatabase, $PagesTable, PageRow> {
+  $$PagesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ViewsTable _viewIdTable(_$AppDatabase db) =>
+      db.views.createAlias('pages__view_id__views__id');
+
+  $$ViewsTableProcessedTableManager get viewId {
+    final $_column = $_itemColumn<int>('view_id')!;
+
+    final manager = $$ViewsTableTableManager(
+      $_db,
+      $_db.views,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_viewIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$WidgetsTable, List<WidgetRow>> _widgetsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.widgets,
+    aliasName: 'pages__id__widgets__page_id',
+  );
+
+  $$WidgetsTableProcessedTableManager get widgetsRefs {
+    final manager = $$WidgetsTableTableManager(
+      $_db,
+      $_db.widgets,
+    ).filter((f) => f.pageId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_widgetsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
 
 class $$PagesTableFilterComposer extends Composer<_$AppDatabase, $PagesTable> {
   $$PagesTableFilterComposer({
@@ -5635,10 +6312,53 @@ class $$PagesTableFilterComposer extends Composer<_$AppDatabase, $PagesTable> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get viewId => $composableBuilder(
-    column: $table.viewId,
-    builder: (column) => ColumnFilters(column),
-  );
+  $$ViewsTableFilterComposer get viewId {
+    final $$ViewsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.viewId,
+      referencedTable: $db.views,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ViewsTableFilterComposer(
+            $db: $db,
+            $table: $db.views,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> widgetsRefs(
+    Expression<bool> Function($$WidgetsTableFilterComposer f) f,
+  ) {
+    final $$WidgetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.widgets,
+      getReferencedColumn: (t) => t.pageId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetsTableFilterComposer(
+            $db: $db,
+            $table: $db.widgets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$PagesTableOrderingComposer
@@ -5660,10 +6380,28 @@ class $$PagesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get viewId => $composableBuilder(
-    column: $table.viewId,
-    builder: (column) => ColumnOrderings(column),
-  );
+  $$ViewsTableOrderingComposer get viewId {
+    final $$ViewsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.viewId,
+      referencedTable: $db.views,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ViewsTableOrderingComposer(
+            $db: $db,
+            $table: $db.views,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$PagesTableAnnotationComposer
@@ -5681,8 +6419,53 @@ class $$PagesTableAnnotationComposer
   GeneratedColumn<int> get number =>
       $composableBuilder(column: $table.number, builder: (column) => column);
 
-  GeneratedColumn<int> get viewId =>
-      $composableBuilder(column: $table.viewId, builder: (column) => column);
+  $$ViewsTableAnnotationComposer get viewId {
+    final $$ViewsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.viewId,
+      referencedTable: $db.views,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ViewsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.views,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> widgetsRefs<T extends Object>(
+    Expression<T> Function($$WidgetsTableAnnotationComposer a) f,
+  ) {
+    final $$WidgetsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.widgets,
+      getReferencedColumn: (t) => t.pageId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.widgets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$PagesTableTableManager
@@ -5696,9 +6479,9 @@ class $$PagesTableTableManager
           $$PagesTableAnnotationComposer,
           $$PagesTableCreateCompanionBuilder,
           $$PagesTableUpdateCompanionBuilder,
-          (PageRow, BaseReferences<_$AppDatabase, $PagesTable, PageRow>),
+          (PageRow, $$PagesTableReferences),
           PageRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool viewId, bool widgetsRefs})
         > {
   $$PagesTableTableManager(_$AppDatabase db, $PagesTable table)
     : super(
@@ -5725,9 +6508,65 @@ class $$PagesTableTableManager
               }) =>
                   PagesCompanion.insert(id: id, number: number, viewId: viewId),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) =>
+                    (e.readTable(table), $$PagesTableReferences(db, table, e)),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({viewId = false, widgetsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (widgetsRefs) db.widgets],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (viewId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.viewId,
+                                referencedTable: $$PagesTableReferences
+                                    ._viewIdTable(db),
+                                referencedColumn: $$PagesTableReferences
+                                    ._viewIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (widgetsRefs)
+                    await $_getPrefetchedData<PageRow, $PagesTable, WidgetRow>(
+                      currentTable: table,
+                      referencedTable: $$PagesTableReferences._widgetsRefsTable(
+                        db,
+                      ),
+                      managerFromTypedResult: (p0) =>
+                          $$PagesTableReferences(db, table, p0).widgetsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.pageId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -5742,9 +6581,9 @@ typedef $$PagesTableProcessedTableManager =
       $$PagesTableAnnotationComposer,
       $$PagesTableCreateCompanionBuilder,
       $$PagesTableUpdateCompanionBuilder,
-      (PageRow, BaseReferences<_$AppDatabase, $PagesTable, PageRow>),
+      (PageRow, $$PagesTableReferences),
       PageRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool viewId, bool widgetsRefs})
     >;
 typedef $$WidgetsTableCreateCompanionBuilder =
     WidgetsCompanion Function({
@@ -5766,6 +6605,48 @@ typedef $$WidgetsTableUpdateCompanionBuilder =
       Value<double> height,
       Value<int> pageId,
     });
+
+final class $$WidgetsTableReferences
+    extends BaseReferences<_$AppDatabase, $WidgetsTable, WidgetRow> {
+  $$WidgetsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $PagesTable _pageIdTable(_$AppDatabase db) =>
+      db.pages.createAlias('widgets__page_id__pages__id');
+
+  $$PagesTableProcessedTableManager get pageId {
+    final $_column = $_itemColumn<int>('page_id')!;
+
+    final manager = $$PagesTableTableManager(
+      $_db,
+      $_db.pages,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_pageIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$WidgetPropertiesTable, List<WidgetPropertyRow>>
+  _widgetPropertiesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.widgetProperties,
+    aliasName: 'widgets__id__widget_properties__widget_id',
+  );
+
+  $$WidgetPropertiesTableProcessedTableManager get widgetPropertiesRefs {
+    final manager = $$WidgetPropertiesTableTableManager(
+      $_db,
+      $_db.widgetProperties,
+    ).filter((f) => f.widgetId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _widgetPropertiesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
 
 class $$WidgetsTableFilterComposer
     extends Composer<_$AppDatabase, $WidgetsTable> {
@@ -5806,10 +6687,53 @@ class $$WidgetsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get pageId => $composableBuilder(
-    column: $table.pageId,
-    builder: (column) => ColumnFilters(column),
-  );
+  $$PagesTableFilterComposer get pageId {
+    final $$PagesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.pageId,
+      referencedTable: $db.pages,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PagesTableFilterComposer(
+            $db: $db,
+            $table: $db.pages,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> widgetPropertiesRefs(
+    Expression<bool> Function($$WidgetPropertiesTableFilterComposer f) f,
+  ) {
+    final $$WidgetPropertiesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.widgetProperties,
+      getReferencedColumn: (t) => t.widgetId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertiesTableFilterComposer(
+            $db: $db,
+            $table: $db.widgetProperties,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$WidgetsTableOrderingComposer
@@ -5851,10 +6775,28 @@ class $$WidgetsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get pageId => $composableBuilder(
-    column: $table.pageId,
-    builder: (column) => ColumnOrderings(column),
-  );
+  $$PagesTableOrderingComposer get pageId {
+    final $$PagesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.pageId,
+      referencedTable: $db.pages,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PagesTableOrderingComposer(
+            $db: $db,
+            $table: $db.pages,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$WidgetsTableAnnotationComposer
@@ -5884,8 +6826,53 @@ class $$WidgetsTableAnnotationComposer
   GeneratedColumn<double> get height =>
       $composableBuilder(column: $table.height, builder: (column) => column);
 
-  GeneratedColumn<int> get pageId =>
-      $composableBuilder(column: $table.pageId, builder: (column) => column);
+  $$PagesTableAnnotationComposer get pageId {
+    final $$PagesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.pageId,
+      referencedTable: $db.pages,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PagesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.pages,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> widgetPropertiesRefs<T extends Object>(
+    Expression<T> Function($$WidgetPropertiesTableAnnotationComposer a) f,
+  ) {
+    final $$WidgetPropertiesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.widgetProperties,
+      getReferencedColumn: (t) => t.widgetId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertiesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.widgetProperties,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$WidgetsTableTableManager
@@ -5899,9 +6886,9 @@ class $$WidgetsTableTableManager
           $$WidgetsTableAnnotationComposer,
           $$WidgetsTableCreateCompanionBuilder,
           $$WidgetsTableUpdateCompanionBuilder,
-          (WidgetRow, BaseReferences<_$AppDatabase, $WidgetsTable, WidgetRow>),
+          (WidgetRow, $$WidgetsTableReferences),
           WidgetRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool pageId, bool widgetPropertiesRefs})
         > {
   $$WidgetsTableTableManager(_$AppDatabase db, $WidgetsTable table)
     : super(
@@ -5951,9 +6938,79 @@ class $$WidgetsTableTableManager
                 pageId: pageId,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$WidgetsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback:
+              ({pageId = false, widgetPropertiesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (widgetPropertiesRefs) db.widgetProperties,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (pageId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.pageId,
+                                    referencedTable: $$WidgetsTableReferences
+                                        ._pageIdTable(db),
+                                    referencedColumn: $$WidgetsTableReferences
+                                        ._pageIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (widgetPropertiesRefs)
+                        await $_getPrefetchedData<
+                          WidgetRow,
+                          $WidgetsTable,
+                          WidgetPropertyRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$WidgetsTableReferences
+                              ._widgetPropertiesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$WidgetsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).widgetPropertiesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.widgetId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
         ),
       );
 }
@@ -5968,9 +7025,9 @@ typedef $$WidgetsTableProcessedTableManager =
       $$WidgetsTableAnnotationComposer,
       $$WidgetsTableCreateCompanionBuilder,
       $$WidgetsTableUpdateCompanionBuilder,
-      (WidgetRow, BaseReferences<_$AppDatabase, $WidgetsTable, WidgetRow>),
+      (WidgetRow, $$WidgetsTableReferences),
       WidgetRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool pageId, bool widgetPropertiesRefs})
     >;
 typedef $$WidgetPropertiesTableCreateCompanionBuilder =
     WidgetPropertiesCompanion Function({
@@ -5986,6 +7043,163 @@ typedef $$WidgetPropertiesTableUpdateCompanionBuilder =
       Value<int> type,
       Value<int> widgetId,
     });
+
+final class $$WidgetPropertiesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $WidgetPropertiesTable,
+          WidgetPropertyRow
+        > {
+  $$WidgetPropertiesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $WidgetsTable _widgetIdTable(_$AppDatabase db) =>
+      db.widgets.createAlias('widget_properties__widget_id__widgets__id');
+
+  $$WidgetsTableProcessedTableManager get widgetId {
+    final $_column = $_itemColumn<int>('widget_id')!;
+
+    final manager = $$WidgetsTableTableManager(
+      $_db,
+      $_db.widgets,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_widgetIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $WidgetPropertyStringsTable,
+    List<WidgetPropertyStringRow>
+  >
+  _widgetPropertyStringsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.widgetPropertyStrings,
+        aliasName:
+            'widget_properties__id__widget_property_strings__property_id',
+      );
+
+  $$WidgetPropertyStringsTableProcessedTableManager
+  get widgetPropertyStringsRefs {
+    final manager = $$WidgetPropertyStringsTableTableManager(
+      $_db,
+      $_db.widgetPropertyStrings,
+    ).filter((f) => f.propertyId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _widgetPropertyStringsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $WidgetPropertyIntsTable,
+    List<WidgetPropertyIntRow>
+  >
+  _widgetPropertyIntsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.widgetPropertyInts,
+        aliasName: 'widget_properties__id__widget_property_ints__property_id',
+      );
+
+  $$WidgetPropertyIntsTableProcessedTableManager get widgetPropertyIntsRefs {
+    final manager = $$WidgetPropertyIntsTableTableManager(
+      $_db,
+      $_db.widgetPropertyInts,
+    ).filter((f) => f.propertyId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _widgetPropertyIntsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $WidgetPropertyFloatsTable,
+    List<WidgetPropertyFloatRow>
+  >
+  _widgetPropertyFloatsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.widgetPropertyFloats,
+        aliasName: 'widget_properties__id__widget_property_floats__property_id',
+      );
+
+  $$WidgetPropertyFloatsTableProcessedTableManager
+  get widgetPropertyFloatsRefs {
+    final manager = $$WidgetPropertyFloatsTableTableManager(
+      $_db,
+      $_db.widgetPropertyFloats,
+    ).filter((f) => f.propertyId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _widgetPropertyFloatsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $WidgetPropertyBoolsTable,
+    List<WidgetPropertyBoolRow>
+  >
+  _widgetPropertyBoolsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.widgetPropertyBools,
+        aliasName: 'widget_properties__id__widget_property_bools__property_id',
+      );
+
+  $$WidgetPropertyBoolsTableProcessedTableManager get widgetPropertyBoolsRefs {
+    final manager = $$WidgetPropertyBoolsTableTableManager(
+      $_db,
+      $_db.widgetPropertyBools,
+    ).filter((f) => f.propertyId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _widgetPropertyBoolsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $WidgetPropertyRawBytesListTable,
+    List<WidgetPropertyRawBytesRow>
+  >
+  _widgetPropertyRawBytesListRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.widgetPropertyRawBytesList,
+    aliasName:
+        'widget_properties__id__widget_property_raw_bytes_list__property_id',
+  );
+
+  $$WidgetPropertyRawBytesListTableProcessedTableManager
+  get widgetPropertyRawBytesListRefs {
+    final manager = $$WidgetPropertyRawBytesListTableTableManager(
+      $_db,
+      $_db.widgetPropertyRawBytesList,
+    ).filter((f) => f.propertyId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _widgetPropertyRawBytesListRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
 
 class $$WidgetPropertiesTableFilterComposer
     extends Composer<_$AppDatabase, $WidgetPropertiesTable> {
@@ -6011,10 +7225,156 @@ class $$WidgetPropertiesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get widgetId => $composableBuilder(
-    column: $table.widgetId,
-    builder: (column) => ColumnFilters(column),
-  );
+  $$WidgetsTableFilterComposer get widgetId {
+    final $$WidgetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.widgetId,
+      referencedTable: $db.widgets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetsTableFilterComposer(
+            $db: $db,
+            $table: $db.widgets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> widgetPropertyStringsRefs(
+    Expression<bool> Function($$WidgetPropertyStringsTableFilterComposer f) f,
+  ) {
+    final $$WidgetPropertyStringsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.widgetPropertyStrings,
+          getReferencedColumn: (t) => t.propertyId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$WidgetPropertyStringsTableFilterComposer(
+                $db: $db,
+                $table: $db.widgetPropertyStrings,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<bool> widgetPropertyIntsRefs(
+    Expression<bool> Function($$WidgetPropertyIntsTableFilterComposer f) f,
+  ) {
+    final $$WidgetPropertyIntsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.widgetPropertyInts,
+      getReferencedColumn: (t) => t.propertyId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertyIntsTableFilterComposer(
+            $db: $db,
+            $table: $db.widgetPropertyInts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> widgetPropertyFloatsRefs(
+    Expression<bool> Function($$WidgetPropertyFloatsTableFilterComposer f) f,
+  ) {
+    final $$WidgetPropertyFloatsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.widgetPropertyFloats,
+      getReferencedColumn: (t) => t.propertyId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertyFloatsTableFilterComposer(
+            $db: $db,
+            $table: $db.widgetPropertyFloats,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> widgetPropertyBoolsRefs(
+    Expression<bool> Function($$WidgetPropertyBoolsTableFilterComposer f) f,
+  ) {
+    final $$WidgetPropertyBoolsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.widgetPropertyBools,
+      getReferencedColumn: (t) => t.propertyId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertyBoolsTableFilterComposer(
+            $db: $db,
+            $table: $db.widgetPropertyBools,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> widgetPropertyRawBytesListRefs(
+    Expression<bool> Function($$WidgetPropertyRawBytesListTableFilterComposer f)
+    f,
+  ) {
+    final $$WidgetPropertyRawBytesListTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.widgetPropertyRawBytesList,
+          getReferencedColumn: (t) => t.propertyId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$WidgetPropertyRawBytesListTableFilterComposer(
+                $db: $db,
+                $table: $db.widgetPropertyRawBytesList,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$WidgetPropertiesTableOrderingComposer
@@ -6041,10 +7401,28 @@ class $$WidgetPropertiesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get widgetId => $composableBuilder(
-    column: $table.widgetId,
-    builder: (column) => ColumnOrderings(column),
-  );
+  $$WidgetsTableOrderingComposer get widgetId {
+    final $$WidgetsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.widgetId,
+      referencedTable: $db.widgets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetsTableOrderingComposer(
+            $db: $db,
+            $table: $db.widgets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$WidgetPropertiesTableAnnotationComposer
@@ -6065,8 +7443,161 @@ class $$WidgetPropertiesTableAnnotationComposer
   GeneratedColumn<int> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
 
-  GeneratedColumn<int> get widgetId =>
-      $composableBuilder(column: $table.widgetId, builder: (column) => column);
+  $$WidgetsTableAnnotationComposer get widgetId {
+    final $$WidgetsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.widgetId,
+      referencedTable: $db.widgets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.widgets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> widgetPropertyStringsRefs<T extends Object>(
+    Expression<T> Function($$WidgetPropertyStringsTableAnnotationComposer a) f,
+  ) {
+    final $$WidgetPropertyStringsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.widgetPropertyStrings,
+          getReferencedColumn: (t) => t.propertyId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$WidgetPropertyStringsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.widgetPropertyStrings,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> widgetPropertyIntsRefs<T extends Object>(
+    Expression<T> Function($$WidgetPropertyIntsTableAnnotationComposer a) f,
+  ) {
+    final $$WidgetPropertyIntsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.widgetPropertyInts,
+          getReferencedColumn: (t) => t.propertyId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$WidgetPropertyIntsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.widgetPropertyInts,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> widgetPropertyFloatsRefs<T extends Object>(
+    Expression<T> Function($$WidgetPropertyFloatsTableAnnotationComposer a) f,
+  ) {
+    final $$WidgetPropertyFloatsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.widgetPropertyFloats,
+          getReferencedColumn: (t) => t.propertyId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$WidgetPropertyFloatsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.widgetPropertyFloats,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> widgetPropertyBoolsRefs<T extends Object>(
+    Expression<T> Function($$WidgetPropertyBoolsTableAnnotationComposer a) f,
+  ) {
+    final $$WidgetPropertyBoolsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.widgetPropertyBools,
+          getReferencedColumn: (t) => t.propertyId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$WidgetPropertyBoolsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.widgetPropertyBools,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> widgetPropertyRawBytesListRefs<T extends Object>(
+    Expression<T> Function(
+      $$WidgetPropertyRawBytesListTableAnnotationComposer a,
+    )
+    f,
+  ) {
+    final $$WidgetPropertyRawBytesListTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.widgetPropertyRawBytesList,
+          getReferencedColumn: (t) => t.propertyId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$WidgetPropertyRawBytesListTableAnnotationComposer(
+                $db: $db,
+                $table: $db.widgetPropertyRawBytesList,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$WidgetPropertiesTableTableManager
@@ -6080,16 +7611,16 @@ class $$WidgetPropertiesTableTableManager
           $$WidgetPropertiesTableAnnotationComposer,
           $$WidgetPropertiesTableCreateCompanionBuilder,
           $$WidgetPropertiesTableUpdateCompanionBuilder,
-          (
-            WidgetPropertyRow,
-            BaseReferences<
-              _$AppDatabase,
-              $WidgetPropertiesTable,
-              WidgetPropertyRow
-            >,
-          ),
+          (WidgetPropertyRow, $$WidgetPropertiesTableReferences),
           WidgetPropertyRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({
+            bool widgetId,
+            bool widgetPropertyStringsRefs,
+            bool widgetPropertyIntsRefs,
+            bool widgetPropertyFloatsRefs,
+            bool widgetPropertyBoolsRefs,
+            bool widgetPropertyRawBytesListRefs,
+          })
         > {
   $$WidgetPropertiesTableTableManager(
     _$AppDatabase db,
@@ -6129,9 +7660,177 @@ class $$WidgetPropertiesTableTableManager
                 widgetId: widgetId,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$WidgetPropertiesTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback:
+              ({
+                widgetId = false,
+                widgetPropertyStringsRefs = false,
+                widgetPropertyIntsRefs = false,
+                widgetPropertyFloatsRefs = false,
+                widgetPropertyBoolsRefs = false,
+                widgetPropertyRawBytesListRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (widgetPropertyStringsRefs) db.widgetPropertyStrings,
+                    if (widgetPropertyIntsRefs) db.widgetPropertyInts,
+                    if (widgetPropertyFloatsRefs) db.widgetPropertyFloats,
+                    if (widgetPropertyBoolsRefs) db.widgetPropertyBools,
+                    if (widgetPropertyRawBytesListRefs)
+                      db.widgetPropertyRawBytesList,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (widgetId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.widgetId,
+                                    referencedTable:
+                                        $$WidgetPropertiesTableReferences
+                                            ._widgetIdTable(db),
+                                    referencedColumn:
+                                        $$WidgetPropertiesTableReferences
+                                            ._widgetIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (widgetPropertyStringsRefs)
+                        await $_getPrefetchedData<
+                          WidgetPropertyRow,
+                          $WidgetPropertiesTable,
+                          WidgetPropertyStringRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$WidgetPropertiesTableReferences
+                              ._widgetPropertyStringsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$WidgetPropertiesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).widgetPropertyStringsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.propertyId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (widgetPropertyIntsRefs)
+                        await $_getPrefetchedData<
+                          WidgetPropertyRow,
+                          $WidgetPropertiesTable,
+                          WidgetPropertyIntRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$WidgetPropertiesTableReferences
+                              ._widgetPropertyIntsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$WidgetPropertiesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).widgetPropertyIntsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.propertyId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (widgetPropertyFloatsRefs)
+                        await $_getPrefetchedData<
+                          WidgetPropertyRow,
+                          $WidgetPropertiesTable,
+                          WidgetPropertyFloatRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$WidgetPropertiesTableReferences
+                              ._widgetPropertyFloatsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$WidgetPropertiesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).widgetPropertyFloatsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.propertyId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (widgetPropertyBoolsRefs)
+                        await $_getPrefetchedData<
+                          WidgetPropertyRow,
+                          $WidgetPropertiesTable,
+                          WidgetPropertyBoolRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$WidgetPropertiesTableReferences
+                              ._widgetPropertyBoolsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$WidgetPropertiesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).widgetPropertyBoolsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.propertyId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (widgetPropertyRawBytesListRefs)
+                        await $_getPrefetchedData<
+                          WidgetPropertyRow,
+                          $WidgetPropertiesTable,
+                          WidgetPropertyRawBytesRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$WidgetPropertiesTableReferences
+                              ._widgetPropertyRawBytesListRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$WidgetPropertiesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).widgetPropertyRawBytesListRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.propertyId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
         ),
       );
 }
@@ -6146,16 +7845,16 @@ typedef $$WidgetPropertiesTableProcessedTableManager =
       $$WidgetPropertiesTableAnnotationComposer,
       $$WidgetPropertiesTableCreateCompanionBuilder,
       $$WidgetPropertiesTableUpdateCompanionBuilder,
-      (
-        WidgetPropertyRow,
-        BaseReferences<
-          _$AppDatabase,
-          $WidgetPropertiesTable,
-          WidgetPropertyRow
-        >,
-      ),
+      (WidgetPropertyRow, $$WidgetPropertiesTableReferences),
       WidgetPropertyRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({
+        bool widgetId,
+        bool widgetPropertyStringsRefs,
+        bool widgetPropertyIntsRefs,
+        bool widgetPropertyFloatsRefs,
+        bool widgetPropertyBoolsRefs,
+        bool widgetPropertyRawBytesListRefs,
+      })
     >;
 typedef $$WidgetPropertyStringsTableCreateCompanionBuilder =
     WidgetPropertyStringsCompanion Function({
@@ -6169,6 +7868,39 @@ typedef $$WidgetPropertyStringsTableUpdateCompanionBuilder =
       Value<int> propertyId,
       Value<String> value,
     });
+
+final class $$WidgetPropertyStringsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $WidgetPropertyStringsTable,
+          WidgetPropertyStringRow
+        > {
+  $$WidgetPropertyStringsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $WidgetPropertiesTable _propertyIdTable(_$AppDatabase db) =>
+      db.widgetProperties.createAlias(
+        'widget_property_strings__property_id__widget_properties__id',
+      );
+
+  $$WidgetPropertiesTableProcessedTableManager get propertyId {
+    final $_column = $_itemColumn<int>('property_id')!;
+
+    final manager = $$WidgetPropertiesTableTableManager(
+      $_db,
+      $_db.widgetProperties,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_propertyIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
 
 class $$WidgetPropertyStringsTableFilterComposer
     extends Composer<_$AppDatabase, $WidgetPropertyStringsTable> {
@@ -6184,15 +7916,33 @@ class $$WidgetPropertyStringsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get propertyId => $composableBuilder(
-    column: $table.propertyId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get value => $composableBuilder(
     column: $table.value,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$WidgetPropertiesTableFilterComposer get propertyId {
+    final $$WidgetPropertiesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.propertyId,
+      referencedTable: $db.widgetProperties,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertiesTableFilterComposer(
+            $db: $db,
+            $table: $db.widgetProperties,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$WidgetPropertyStringsTableOrderingComposer
@@ -6209,15 +7959,33 @@ class $$WidgetPropertyStringsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get propertyId => $composableBuilder(
-    column: $table.propertyId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get value => $composableBuilder(
     column: $table.value,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$WidgetPropertiesTableOrderingComposer get propertyId {
+    final $$WidgetPropertiesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.propertyId,
+      referencedTable: $db.widgetProperties,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertiesTableOrderingComposer(
+            $db: $db,
+            $table: $db.widgetProperties,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$WidgetPropertyStringsTableAnnotationComposer
@@ -6232,13 +8000,31 @@ class $$WidgetPropertyStringsTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get propertyId => $composableBuilder(
-    column: $table.propertyId,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<String> get value =>
       $composableBuilder(column: $table.value, builder: (column) => column);
+
+  $$WidgetPropertiesTableAnnotationComposer get propertyId {
+    final $$WidgetPropertiesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.propertyId,
+      referencedTable: $db.widgetProperties,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertiesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.widgetProperties,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$WidgetPropertyStringsTableTableManager
@@ -6252,16 +8038,9 @@ class $$WidgetPropertyStringsTableTableManager
           $$WidgetPropertyStringsTableAnnotationComposer,
           $$WidgetPropertyStringsTableCreateCompanionBuilder,
           $$WidgetPropertyStringsTableUpdateCompanionBuilder,
-          (
-            WidgetPropertyStringRow,
-            BaseReferences<
-              _$AppDatabase,
-              $WidgetPropertyStringsTable,
-              WidgetPropertyStringRow
-            >,
-          ),
+          (WidgetPropertyStringRow, $$WidgetPropertyStringsTableReferences),
           WidgetPropertyStringRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool propertyId})
         > {
   $$WidgetPropertyStringsTableTableManager(
     _$AppDatabase db,
@@ -6306,9 +8085,56 @@ class $$WidgetPropertyStringsTableTableManager
                 value: value,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$WidgetPropertyStringsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({propertyId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (propertyId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.propertyId,
+                                referencedTable:
+                                    $$WidgetPropertyStringsTableReferences
+                                        ._propertyIdTable(db),
+                                referencedColumn:
+                                    $$WidgetPropertyStringsTableReferences
+                                        ._propertyIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -6323,16 +8149,9 @@ typedef $$WidgetPropertyStringsTableProcessedTableManager =
       $$WidgetPropertyStringsTableAnnotationComposer,
       $$WidgetPropertyStringsTableCreateCompanionBuilder,
       $$WidgetPropertyStringsTableUpdateCompanionBuilder,
-      (
-        WidgetPropertyStringRow,
-        BaseReferences<
-          _$AppDatabase,
-          $WidgetPropertyStringsTable,
-          WidgetPropertyStringRow
-        >,
-      ),
+      (WidgetPropertyStringRow, $$WidgetPropertyStringsTableReferences),
       WidgetPropertyStringRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool propertyId})
     >;
 typedef $$WidgetPropertyIntsTableCreateCompanionBuilder =
     WidgetPropertyIntsCompanion Function({
@@ -6346,6 +8165,38 @@ typedef $$WidgetPropertyIntsTableUpdateCompanionBuilder =
       Value<int> propertyId,
       Value<int> value,
     });
+
+final class $$WidgetPropertyIntsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $WidgetPropertyIntsTable,
+          WidgetPropertyIntRow
+        > {
+  $$WidgetPropertyIntsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $WidgetPropertiesTable _propertyIdTable(_$AppDatabase db) => db
+      .widgetProperties
+      .createAlias('widget_property_ints__property_id__widget_properties__id');
+
+  $$WidgetPropertiesTableProcessedTableManager get propertyId {
+    final $_column = $_itemColumn<int>('property_id')!;
+
+    final manager = $$WidgetPropertiesTableTableManager(
+      $_db,
+      $_db.widgetProperties,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_propertyIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
 
 class $$WidgetPropertyIntsTableFilterComposer
     extends Composer<_$AppDatabase, $WidgetPropertyIntsTable> {
@@ -6361,15 +8212,33 @@ class $$WidgetPropertyIntsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get propertyId => $composableBuilder(
-    column: $table.propertyId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<int> get value => $composableBuilder(
     column: $table.value,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$WidgetPropertiesTableFilterComposer get propertyId {
+    final $$WidgetPropertiesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.propertyId,
+      referencedTable: $db.widgetProperties,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertiesTableFilterComposer(
+            $db: $db,
+            $table: $db.widgetProperties,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$WidgetPropertyIntsTableOrderingComposer
@@ -6386,15 +8255,33 @@ class $$WidgetPropertyIntsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get propertyId => $composableBuilder(
-    column: $table.propertyId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<int> get value => $composableBuilder(
     column: $table.value,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$WidgetPropertiesTableOrderingComposer get propertyId {
+    final $$WidgetPropertiesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.propertyId,
+      referencedTable: $db.widgetProperties,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertiesTableOrderingComposer(
+            $db: $db,
+            $table: $db.widgetProperties,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$WidgetPropertyIntsTableAnnotationComposer
@@ -6409,13 +8296,31 @@ class $$WidgetPropertyIntsTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get propertyId => $composableBuilder(
-    column: $table.propertyId,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<int> get value =>
       $composableBuilder(column: $table.value, builder: (column) => column);
+
+  $$WidgetPropertiesTableAnnotationComposer get propertyId {
+    final $$WidgetPropertiesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.propertyId,
+      referencedTable: $db.widgetProperties,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertiesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.widgetProperties,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$WidgetPropertyIntsTableTableManager
@@ -6429,16 +8334,9 @@ class $$WidgetPropertyIntsTableTableManager
           $$WidgetPropertyIntsTableAnnotationComposer,
           $$WidgetPropertyIntsTableCreateCompanionBuilder,
           $$WidgetPropertyIntsTableUpdateCompanionBuilder,
-          (
-            WidgetPropertyIntRow,
-            BaseReferences<
-              _$AppDatabase,
-              $WidgetPropertyIntsTable,
-              WidgetPropertyIntRow
-            >,
-          ),
+          (WidgetPropertyIntRow, $$WidgetPropertyIntsTableReferences),
           WidgetPropertyIntRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool propertyId})
         > {
   $$WidgetPropertyIntsTableTableManager(
     _$AppDatabase db,
@@ -6477,9 +8375,56 @@ class $$WidgetPropertyIntsTableTableManager
                 value: value,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$WidgetPropertyIntsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({propertyId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (propertyId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.propertyId,
+                                referencedTable:
+                                    $$WidgetPropertyIntsTableReferences
+                                        ._propertyIdTable(db),
+                                referencedColumn:
+                                    $$WidgetPropertyIntsTableReferences
+                                        ._propertyIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -6494,16 +8439,9 @@ typedef $$WidgetPropertyIntsTableProcessedTableManager =
       $$WidgetPropertyIntsTableAnnotationComposer,
       $$WidgetPropertyIntsTableCreateCompanionBuilder,
       $$WidgetPropertyIntsTableUpdateCompanionBuilder,
-      (
-        WidgetPropertyIntRow,
-        BaseReferences<
-          _$AppDatabase,
-          $WidgetPropertyIntsTable,
-          WidgetPropertyIntRow
-        >,
-      ),
+      (WidgetPropertyIntRow, $$WidgetPropertyIntsTableReferences),
       WidgetPropertyIntRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool propertyId})
     >;
 typedef $$WidgetPropertyFloatsTableCreateCompanionBuilder =
     WidgetPropertyFloatsCompanion Function({
@@ -6517,6 +8455,39 @@ typedef $$WidgetPropertyFloatsTableUpdateCompanionBuilder =
       Value<int> propertyId,
       Value<double> value,
     });
+
+final class $$WidgetPropertyFloatsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $WidgetPropertyFloatsTable,
+          WidgetPropertyFloatRow
+        > {
+  $$WidgetPropertyFloatsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $WidgetPropertiesTable _propertyIdTable(_$AppDatabase db) =>
+      db.widgetProperties.createAlias(
+        'widget_property_floats__property_id__widget_properties__id',
+      );
+
+  $$WidgetPropertiesTableProcessedTableManager get propertyId {
+    final $_column = $_itemColumn<int>('property_id')!;
+
+    final manager = $$WidgetPropertiesTableTableManager(
+      $_db,
+      $_db.widgetProperties,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_propertyIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
 
 class $$WidgetPropertyFloatsTableFilterComposer
     extends Composer<_$AppDatabase, $WidgetPropertyFloatsTable> {
@@ -6532,15 +8503,33 @@ class $$WidgetPropertyFloatsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get propertyId => $composableBuilder(
-    column: $table.propertyId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<double> get value => $composableBuilder(
     column: $table.value,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$WidgetPropertiesTableFilterComposer get propertyId {
+    final $$WidgetPropertiesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.propertyId,
+      referencedTable: $db.widgetProperties,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertiesTableFilterComposer(
+            $db: $db,
+            $table: $db.widgetProperties,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$WidgetPropertyFloatsTableOrderingComposer
@@ -6557,15 +8546,33 @@ class $$WidgetPropertyFloatsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get propertyId => $composableBuilder(
-    column: $table.propertyId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<double> get value => $composableBuilder(
     column: $table.value,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$WidgetPropertiesTableOrderingComposer get propertyId {
+    final $$WidgetPropertiesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.propertyId,
+      referencedTable: $db.widgetProperties,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertiesTableOrderingComposer(
+            $db: $db,
+            $table: $db.widgetProperties,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$WidgetPropertyFloatsTableAnnotationComposer
@@ -6580,13 +8587,31 @@ class $$WidgetPropertyFloatsTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get propertyId => $composableBuilder(
-    column: $table.propertyId,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<double> get value =>
       $composableBuilder(column: $table.value, builder: (column) => column);
+
+  $$WidgetPropertiesTableAnnotationComposer get propertyId {
+    final $$WidgetPropertiesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.propertyId,
+      referencedTable: $db.widgetProperties,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertiesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.widgetProperties,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$WidgetPropertyFloatsTableTableManager
@@ -6600,16 +8625,9 @@ class $$WidgetPropertyFloatsTableTableManager
           $$WidgetPropertyFloatsTableAnnotationComposer,
           $$WidgetPropertyFloatsTableCreateCompanionBuilder,
           $$WidgetPropertyFloatsTableUpdateCompanionBuilder,
-          (
-            WidgetPropertyFloatRow,
-            BaseReferences<
-              _$AppDatabase,
-              $WidgetPropertyFloatsTable,
-              WidgetPropertyFloatRow
-            >,
-          ),
+          (WidgetPropertyFloatRow, $$WidgetPropertyFloatsTableReferences),
           WidgetPropertyFloatRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool propertyId})
         > {
   $$WidgetPropertyFloatsTableTableManager(
     _$AppDatabase db,
@@ -6651,9 +8669,56 @@ class $$WidgetPropertyFloatsTableTableManager
                 value: value,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$WidgetPropertyFloatsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({propertyId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (propertyId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.propertyId,
+                                referencedTable:
+                                    $$WidgetPropertyFloatsTableReferences
+                                        ._propertyIdTable(db),
+                                referencedColumn:
+                                    $$WidgetPropertyFloatsTableReferences
+                                        ._propertyIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -6668,16 +8733,9 @@ typedef $$WidgetPropertyFloatsTableProcessedTableManager =
       $$WidgetPropertyFloatsTableAnnotationComposer,
       $$WidgetPropertyFloatsTableCreateCompanionBuilder,
       $$WidgetPropertyFloatsTableUpdateCompanionBuilder,
-      (
-        WidgetPropertyFloatRow,
-        BaseReferences<
-          _$AppDatabase,
-          $WidgetPropertyFloatsTable,
-          WidgetPropertyFloatRow
-        >,
-      ),
+      (WidgetPropertyFloatRow, $$WidgetPropertyFloatsTableReferences),
       WidgetPropertyFloatRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool propertyId})
     >;
 typedef $$WidgetPropertyBoolsTableCreateCompanionBuilder =
     WidgetPropertyBoolsCompanion Function({
@@ -6691,6 +8749,38 @@ typedef $$WidgetPropertyBoolsTableUpdateCompanionBuilder =
       Value<int> propertyId,
       Value<bool> value,
     });
+
+final class $$WidgetPropertyBoolsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $WidgetPropertyBoolsTable,
+          WidgetPropertyBoolRow
+        > {
+  $$WidgetPropertyBoolsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $WidgetPropertiesTable _propertyIdTable(_$AppDatabase db) => db
+      .widgetProperties
+      .createAlias('widget_property_bools__property_id__widget_properties__id');
+
+  $$WidgetPropertiesTableProcessedTableManager get propertyId {
+    final $_column = $_itemColumn<int>('property_id')!;
+
+    final manager = $$WidgetPropertiesTableTableManager(
+      $_db,
+      $_db.widgetProperties,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_propertyIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
 
 class $$WidgetPropertyBoolsTableFilterComposer
     extends Composer<_$AppDatabase, $WidgetPropertyBoolsTable> {
@@ -6706,15 +8796,33 @@ class $$WidgetPropertyBoolsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get propertyId => $composableBuilder(
-    column: $table.propertyId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<bool> get value => $composableBuilder(
     column: $table.value,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$WidgetPropertiesTableFilterComposer get propertyId {
+    final $$WidgetPropertiesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.propertyId,
+      referencedTable: $db.widgetProperties,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertiesTableFilterComposer(
+            $db: $db,
+            $table: $db.widgetProperties,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$WidgetPropertyBoolsTableOrderingComposer
@@ -6731,15 +8839,33 @@ class $$WidgetPropertyBoolsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get propertyId => $composableBuilder(
-    column: $table.propertyId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<bool> get value => $composableBuilder(
     column: $table.value,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$WidgetPropertiesTableOrderingComposer get propertyId {
+    final $$WidgetPropertiesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.propertyId,
+      referencedTable: $db.widgetProperties,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertiesTableOrderingComposer(
+            $db: $db,
+            $table: $db.widgetProperties,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$WidgetPropertyBoolsTableAnnotationComposer
@@ -6754,13 +8880,31 @@ class $$WidgetPropertyBoolsTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get propertyId => $composableBuilder(
-    column: $table.propertyId,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<bool> get value =>
       $composableBuilder(column: $table.value, builder: (column) => column);
+
+  $$WidgetPropertiesTableAnnotationComposer get propertyId {
+    final $$WidgetPropertiesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.propertyId,
+      referencedTable: $db.widgetProperties,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertiesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.widgetProperties,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$WidgetPropertyBoolsTableTableManager
@@ -6774,16 +8918,9 @@ class $$WidgetPropertyBoolsTableTableManager
           $$WidgetPropertyBoolsTableAnnotationComposer,
           $$WidgetPropertyBoolsTableCreateCompanionBuilder,
           $$WidgetPropertyBoolsTableUpdateCompanionBuilder,
-          (
-            WidgetPropertyBoolRow,
-            BaseReferences<
-              _$AppDatabase,
-              $WidgetPropertyBoolsTable,
-              WidgetPropertyBoolRow
-            >,
-          ),
+          (WidgetPropertyBoolRow, $$WidgetPropertyBoolsTableReferences),
           WidgetPropertyBoolRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool propertyId})
         > {
   $$WidgetPropertyBoolsTableTableManager(
     _$AppDatabase db,
@@ -6825,9 +8962,56 @@ class $$WidgetPropertyBoolsTableTableManager
                 value: value,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$WidgetPropertyBoolsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({propertyId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (propertyId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.propertyId,
+                                referencedTable:
+                                    $$WidgetPropertyBoolsTableReferences
+                                        ._propertyIdTable(db),
+                                referencedColumn:
+                                    $$WidgetPropertyBoolsTableReferences
+                                        ._propertyIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -6842,16 +9026,9 @@ typedef $$WidgetPropertyBoolsTableProcessedTableManager =
       $$WidgetPropertyBoolsTableAnnotationComposer,
       $$WidgetPropertyBoolsTableCreateCompanionBuilder,
       $$WidgetPropertyBoolsTableUpdateCompanionBuilder,
-      (
-        WidgetPropertyBoolRow,
-        BaseReferences<
-          _$AppDatabase,
-          $WidgetPropertyBoolsTable,
-          WidgetPropertyBoolRow
-        >,
-      ),
+      (WidgetPropertyBoolRow, $$WidgetPropertyBoolsTableReferences),
       WidgetPropertyBoolRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool propertyId})
     >;
 typedef $$WidgetPropertyRawBytesListTableCreateCompanionBuilder =
     WidgetPropertyRawBytesListCompanion Function({
@@ -6865,6 +9042,39 @@ typedef $$WidgetPropertyRawBytesListTableUpdateCompanionBuilder =
       Value<int> propertyId,
       Value<Uint8List> value,
     });
+
+final class $$WidgetPropertyRawBytesListTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $WidgetPropertyRawBytesListTable,
+          WidgetPropertyRawBytesRow
+        > {
+  $$WidgetPropertyRawBytesListTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $WidgetPropertiesTable _propertyIdTable(_$AppDatabase db) =>
+      db.widgetProperties.createAlias(
+        'widget_property_raw_bytes_list__property_id__widget_properties__id',
+      );
+
+  $$WidgetPropertiesTableProcessedTableManager get propertyId {
+    final $_column = $_itemColumn<int>('property_id')!;
+
+    final manager = $$WidgetPropertiesTableTableManager(
+      $_db,
+      $_db.widgetProperties,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_propertyIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
 
 class $$WidgetPropertyRawBytesListTableFilterComposer
     extends Composer<_$AppDatabase, $WidgetPropertyRawBytesListTable> {
@@ -6880,15 +9090,33 @@ class $$WidgetPropertyRawBytesListTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get propertyId => $composableBuilder(
-    column: $table.propertyId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<Uint8List> get value => $composableBuilder(
     column: $table.value,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$WidgetPropertiesTableFilterComposer get propertyId {
+    final $$WidgetPropertiesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.propertyId,
+      referencedTable: $db.widgetProperties,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertiesTableFilterComposer(
+            $db: $db,
+            $table: $db.widgetProperties,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$WidgetPropertyRawBytesListTableOrderingComposer
@@ -6905,15 +9133,33 @@ class $$WidgetPropertyRawBytesListTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get propertyId => $composableBuilder(
-    column: $table.propertyId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<Uint8List> get value => $composableBuilder(
     column: $table.value,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$WidgetPropertiesTableOrderingComposer get propertyId {
+    final $$WidgetPropertiesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.propertyId,
+      referencedTable: $db.widgetProperties,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertiesTableOrderingComposer(
+            $db: $db,
+            $table: $db.widgetProperties,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$WidgetPropertyRawBytesListTableAnnotationComposer
@@ -6928,13 +9174,31 @@ class $$WidgetPropertyRawBytesListTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get propertyId => $composableBuilder(
-    column: $table.propertyId,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<Uint8List> get value =>
       $composableBuilder(column: $table.value, builder: (column) => column);
+
+  $$WidgetPropertiesTableAnnotationComposer get propertyId {
+    final $$WidgetPropertiesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.propertyId,
+      referencedTable: $db.widgetProperties,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WidgetPropertiesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.widgetProperties,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$WidgetPropertyRawBytesListTableTableManager
@@ -6950,14 +9214,10 @@ class $$WidgetPropertyRawBytesListTableTableManager
           $$WidgetPropertyRawBytesListTableUpdateCompanionBuilder,
           (
             WidgetPropertyRawBytesRow,
-            BaseReferences<
-              _$AppDatabase,
-              $WidgetPropertyRawBytesListTable,
-              WidgetPropertyRawBytesRow
-            >,
+            $$WidgetPropertyRawBytesListTableReferences,
           ),
           WidgetPropertyRawBytesRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool propertyId})
         > {
   $$WidgetPropertyRawBytesListTableTableManager(
     _$AppDatabase db,
@@ -7002,9 +9262,56 @@ class $$WidgetPropertyRawBytesListTableTableManager
                 value: value,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$WidgetPropertyRawBytesListTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({propertyId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (propertyId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.propertyId,
+                                referencedTable:
+                                    $$WidgetPropertyRawBytesListTableReferences
+                                        ._propertyIdTable(db),
+                                referencedColumn:
+                                    $$WidgetPropertyRawBytesListTableReferences
+                                        ._propertyIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -7019,16 +9326,9 @@ typedef $$WidgetPropertyRawBytesListTableProcessedTableManager =
       $$WidgetPropertyRawBytesListTableAnnotationComposer,
       $$WidgetPropertyRawBytesListTableCreateCompanionBuilder,
       $$WidgetPropertyRawBytesListTableUpdateCompanionBuilder,
-      (
-        WidgetPropertyRawBytesRow,
-        BaseReferences<
-          _$AppDatabase,
-          $WidgetPropertyRawBytesListTable,
-          WidgetPropertyRawBytesRow
-        >,
-      ),
+      (WidgetPropertyRawBytesRow, $$WidgetPropertyRawBytesListTableReferences),
       WidgetPropertyRawBytesRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool propertyId})
     >;
 typedef $$DashboardsTableCreateCompanionBuilder =
     DashboardsCompanion Function({
@@ -7054,6 +9354,29 @@ typedef $$DashboardsTableUpdateCompanionBuilder =
       Value<double> width,
       Value<double> height,
     });
+
+final class $$DashboardsTableReferences
+    extends BaseReferences<_$AppDatabase, $DashboardsTable, DashboardRow> {
+  $$DashboardsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$DashboardItemsTable, List<DashboardItemRow>>
+  _dashboardItemsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.dashboardItems,
+    aliasName: 'dashboards__id__dashboard_items__dashboard_id',
+  );
+
+  $$DashboardItemsTableProcessedTableManager get dashboardItemsRefs {
+    final manager = $$DashboardItemsTableTableManager(
+      $_db,
+      $_db.dashboardItems,
+    ).filter((f) => f.dashboardId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_dashboardItemsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
 
 class $$DashboardsTableFilterComposer
     extends Composer<_$AppDatabase, $DashboardsTable> {
@@ -7108,6 +9431,31 @@ class $$DashboardsTableFilterComposer
     column: $table.height,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> dashboardItemsRefs(
+    Expression<bool> Function($$DashboardItemsTableFilterComposer f) f,
+  ) {
+    final $$DashboardItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.dashboardItems,
+      getReferencedColumn: (t) => t.dashboardId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DashboardItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.dashboardItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$DashboardsTableOrderingComposer
@@ -7204,6 +9552,31 @@ class $$DashboardsTableAnnotationComposer
 
   GeneratedColumn<double> get height =>
       $composableBuilder(column: $table.height, builder: (column) => column);
+
+  Expression<T> dashboardItemsRefs<T extends Object>(
+    Expression<T> Function($$DashboardItemsTableAnnotationComposer a) f,
+  ) {
+    final $$DashboardItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.dashboardItems,
+      getReferencedColumn: (t) => t.dashboardId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DashboardItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.dashboardItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$DashboardsTableTableManager
@@ -7217,12 +9590,9 @@ class $$DashboardsTableTableManager
           $$DashboardsTableAnnotationComposer,
           $$DashboardsTableCreateCompanionBuilder,
           $$DashboardsTableUpdateCompanionBuilder,
-          (
-            DashboardRow,
-            BaseReferences<_$AppDatabase, $DashboardsTable, DashboardRow>,
-          ),
+          (DashboardRow, $$DashboardsTableReferences),
           DashboardRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool dashboardItemsRefs})
         > {
   $$DashboardsTableTableManager(_$AppDatabase db, $DashboardsTable table)
     : super(
@@ -7280,9 +9650,47 @@ class $$DashboardsTableTableManager
                 height: height,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$DashboardsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({dashboardItemsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (dashboardItemsRefs) db.dashboardItems,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (dashboardItemsRefs)
+                    await $_getPrefetchedData<
+                      DashboardRow,
+                      $DashboardsTable,
+                      DashboardItemRow
+                    >(
+                      currentTable: table,
+                      referencedTable: $$DashboardsTableReferences
+                          ._dashboardItemsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$DashboardsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).dashboardItemsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where(
+                            (e) => e.dashboardId == item.id,
+                          ),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -7297,12 +9705,9 @@ typedef $$DashboardsTableProcessedTableManager =
       $$DashboardsTableAnnotationComposer,
       $$DashboardsTableCreateCompanionBuilder,
       $$DashboardsTableUpdateCompanionBuilder,
-      (
-        DashboardRow,
-        BaseReferences<_$AppDatabase, $DashboardsTable, DashboardRow>,
-      ),
+      (DashboardRow, $$DashboardsTableReferences),
       DashboardRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool dashboardItemsRefs})
     >;
 typedef $$DashboardItemsTableCreateCompanionBuilder =
     DashboardItemsCompanion Function({
@@ -7338,6 +9743,53 @@ typedef $$DashboardItemsTableUpdateCompanionBuilder =
       Value<double> valueFontSize,
       Value<int> valuePosition,
     });
+
+final class $$DashboardItemsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $DashboardItemsTable, DashboardItemRow> {
+  $$DashboardItemsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $DashboardsTable _dashboardIdTable(_$AppDatabase db) => db.dashboards
+      .createAlias('dashboard_items__dashboard_id__dashboards__id');
+
+  $$DashboardsTableProcessedTableManager get dashboardId {
+    final $_column = $_itemColumn<int>('dashboard_id')!;
+
+    final manager = $$DashboardsTableTableManager(
+      $_db,
+      $_db.dashboards,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_dashboardIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$ThresholdConfigsTable, List<ThresholdConfigRow>>
+  _thresholdConfigsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.thresholdConfigs,
+    aliasName: 'dashboard_items__id__threshold_configs__item_id',
+  );
+
+  $$ThresholdConfigsTableProcessedTableManager get thresholdConfigsRefs {
+    final manager = $$ThresholdConfigsTableTableManager(
+      $_db,
+      $_db.thresholdConfigs,
+    ).filter((f) => f.itemId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _thresholdConfigsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
 
 class $$DashboardItemsTableFilterComposer
     extends Composer<_$AppDatabase, $DashboardItemsTable> {
@@ -7403,11 +9855,6 @@ class $$DashboardItemsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get dashboardId => $composableBuilder(
-    column: $table.dashboardId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<double> get valueFontSize => $composableBuilder(
     column: $table.valueFontSize,
     builder: (column) => ColumnFilters(column),
@@ -7417,6 +9864,54 @@ class $$DashboardItemsTableFilterComposer
     column: $table.valuePosition,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$DashboardsTableFilterComposer get dashboardId {
+    final $$DashboardsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dashboardId,
+      referencedTable: $db.dashboards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DashboardsTableFilterComposer(
+            $db: $db,
+            $table: $db.dashboards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> thresholdConfigsRefs(
+    Expression<bool> Function($$ThresholdConfigsTableFilterComposer f) f,
+  ) {
+    final $$ThresholdConfigsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.thresholdConfigs,
+      getReferencedColumn: (t) => t.itemId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ThresholdConfigsTableFilterComposer(
+            $db: $db,
+            $table: $db.thresholdConfigs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$DashboardItemsTableOrderingComposer
@@ -7483,11 +9978,6 @@ class $$DashboardItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get dashboardId => $composableBuilder(
-    column: $table.dashboardId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<double> get valueFontSize => $composableBuilder(
     column: $table.valueFontSize,
     builder: (column) => ColumnOrderings(column),
@@ -7497,6 +9987,29 @@ class $$DashboardItemsTableOrderingComposer
     column: $table.valuePosition,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$DashboardsTableOrderingComposer get dashboardId {
+    final $$DashboardsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dashboardId,
+      referencedTable: $db.dashboards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DashboardsTableOrderingComposer(
+            $db: $db,
+            $table: $db.dashboards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$DashboardItemsTableAnnotationComposer
@@ -7549,11 +10062,6 @@ class $$DashboardItemsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get dashboardId => $composableBuilder(
-    column: $table.dashboardId,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<double> get valueFontSize => $composableBuilder(
     column: $table.valueFontSize,
     builder: (column) => column,
@@ -7563,6 +10071,54 @@ class $$DashboardItemsTableAnnotationComposer
     column: $table.valuePosition,
     builder: (column) => column,
   );
+
+  $$DashboardsTableAnnotationComposer get dashboardId {
+    final $$DashboardsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.dashboardId,
+      referencedTable: $db.dashboards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DashboardsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.dashboards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> thresholdConfigsRefs<T extends Object>(
+    Expression<T> Function($$ThresholdConfigsTableAnnotationComposer a) f,
+  ) {
+    final $$ThresholdConfigsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.thresholdConfigs,
+      getReferencedColumn: (t) => t.itemId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ThresholdConfigsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.thresholdConfigs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$DashboardItemsTableTableManager
@@ -7576,16 +10132,9 @@ class $$DashboardItemsTableTableManager
           $$DashboardItemsTableAnnotationComposer,
           $$DashboardItemsTableCreateCompanionBuilder,
           $$DashboardItemsTableUpdateCompanionBuilder,
-          (
-            DashboardItemRow,
-            BaseReferences<
-              _$AppDatabase,
-              $DashboardItemsTable,
-              DashboardItemRow
-            >,
-          ),
+          (DashboardItemRow, $$DashboardItemsTableReferences),
           DashboardItemRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool dashboardId, bool thresholdConfigsRefs})
         > {
   $$DashboardItemsTableTableManager(
     _$AppDatabase db,
@@ -7665,9 +10214,81 @@ class $$DashboardItemsTableTableManager
                 valuePosition: valuePosition,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$DashboardItemsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback:
+              ({dashboardId = false, thresholdConfigsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (thresholdConfigsRefs) db.thresholdConfigs,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (dashboardId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.dashboardId,
+                                    referencedTable:
+                                        $$DashboardItemsTableReferences
+                                            ._dashboardIdTable(db),
+                                    referencedColumn:
+                                        $$DashboardItemsTableReferences
+                                            ._dashboardIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (thresholdConfigsRefs)
+                        await $_getPrefetchedData<
+                          DashboardItemRow,
+                          $DashboardItemsTable,
+                          ThresholdConfigRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$DashboardItemsTableReferences
+                              ._thresholdConfigsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$DashboardItemsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).thresholdConfigsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.itemId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
         ),
       );
 }
@@ -7682,12 +10303,9 @@ typedef $$DashboardItemsTableProcessedTableManager =
       $$DashboardItemsTableAnnotationComposer,
       $$DashboardItemsTableCreateCompanionBuilder,
       $$DashboardItemsTableUpdateCompanionBuilder,
-      (
-        DashboardItemRow,
-        BaseReferences<_$AppDatabase, $DashboardItemsTable, DashboardItemRow>,
-      ),
+      (DashboardItemRow, $$DashboardItemsTableReferences),
       DashboardItemRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool dashboardId, bool thresholdConfigsRefs})
     >;
 typedef $$ThresholdConfigsTableCreateCompanionBuilder =
     ThresholdConfigsCompanion Function({
@@ -7705,6 +10323,38 @@ typedef $$ThresholdConfigsTableUpdateCompanionBuilder =
       Value<int> colorValue,
       Value<int> itemId,
     });
+
+final class $$ThresholdConfigsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $ThresholdConfigsTable,
+          ThresholdConfigRow
+        > {
+  $$ThresholdConfigsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $DashboardItemsTable _itemIdTable(_$AppDatabase db) => db
+      .dashboardItems
+      .createAlias('threshold_configs__item_id__dashboard_items__id');
+
+  $$DashboardItemsTableProcessedTableManager get itemId {
+    final $_column = $_itemColumn<int>('item_id')!;
+
+    final manager = $$DashboardItemsTableTableManager(
+      $_db,
+      $_db.dashboardItems,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_itemIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
 
 class $$ThresholdConfigsTableFilterComposer
     extends Composer<_$AppDatabase, $ThresholdConfigsTable> {
@@ -7735,10 +10385,28 @@ class $$ThresholdConfigsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get itemId => $composableBuilder(
-    column: $table.itemId,
-    builder: (column) => ColumnFilters(column),
-  );
+  $$DashboardItemsTableFilterComposer get itemId {
+    final $$DashboardItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.itemId,
+      referencedTable: $db.dashboardItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DashboardItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.dashboardItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ThresholdConfigsTableOrderingComposer
@@ -7770,10 +10438,28 @@ class $$ThresholdConfigsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get itemId => $composableBuilder(
-    column: $table.itemId,
-    builder: (column) => ColumnOrderings(column),
-  );
+  $$DashboardItemsTableOrderingComposer get itemId {
+    final $$DashboardItemsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.itemId,
+      referencedTable: $db.dashboardItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DashboardItemsTableOrderingComposer(
+            $db: $db,
+            $table: $db.dashboardItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ThresholdConfigsTableAnnotationComposer
@@ -7803,8 +10489,28 @@ class $$ThresholdConfigsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get itemId =>
-      $composableBuilder(column: $table.itemId, builder: (column) => column);
+  $$DashboardItemsTableAnnotationComposer get itemId {
+    final $$DashboardItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.itemId,
+      referencedTable: $db.dashboardItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DashboardItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.dashboardItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ThresholdConfigsTableTableManager
@@ -7818,16 +10524,9 @@ class $$ThresholdConfigsTableTableManager
           $$ThresholdConfigsTableAnnotationComposer,
           $$ThresholdConfigsTableCreateCompanionBuilder,
           $$ThresholdConfigsTableUpdateCompanionBuilder,
-          (
-            ThresholdConfigRow,
-            BaseReferences<
-              _$AppDatabase,
-              $ThresholdConfigsTable,
-              ThresholdConfigRow
-            >,
-          ),
+          (ThresholdConfigRow, $$ThresholdConfigsTableReferences),
           ThresholdConfigRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool itemId})
         > {
   $$ThresholdConfigsTableTableManager(
     _$AppDatabase db,
@@ -7871,9 +10570,56 @@ class $$ThresholdConfigsTableTableManager
                 itemId: itemId,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ThresholdConfigsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({itemId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (itemId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.itemId,
+                                referencedTable:
+                                    $$ThresholdConfigsTableReferences
+                                        ._itemIdTable(db),
+                                referencedColumn:
+                                    $$ThresholdConfigsTableReferences
+                                        ._itemIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -7888,16 +10634,9 @@ typedef $$ThresholdConfigsTableProcessedTableManager =
       $$ThresholdConfigsTableAnnotationComposer,
       $$ThresholdConfigsTableCreateCompanionBuilder,
       $$ThresholdConfigsTableUpdateCompanionBuilder,
-      (
-        ThresholdConfigRow,
-        BaseReferences<
-          _$AppDatabase,
-          $ThresholdConfigsTable,
-          ThresholdConfigRow
-        >,
-      ),
+      (ThresholdConfigRow, $$ThresholdConfigsTableReferences),
       ThresholdConfigRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool itemId})
     >;
 
 class $AppDatabaseManager {

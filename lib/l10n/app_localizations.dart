@@ -428,6 +428,12 @@ abstract class AppLocalizations {
   /// **'Rain Radar'**
   String get widgetNameRainRadar;
 
+  /// No description provided for @widgetNameRainForecast.
+  ///
+  /// In en, this message translates to:
+  /// **'Rain Forecast'**
+  String get widgetNameRainForecast;
+
   /// No description provided for @rainRadarSettingsTitle.
   ///
   /// In en, this message translates to:
@@ -889,6 +895,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit Widget Style'**
   String get editWidgetProperties;
+
+  /// No description provided for @noWidgetParameters.
+  ///
+  /// In en, this message translates to:
+  /// **'This widget has no configurable parameters.'**
+  String get noWidgetParameters;
 
   /// No description provided for @widgetNameHAMultiDashboard.
   ///
@@ -2371,6 +2383,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View layout updated automatically'**
   String get viewUpdatedNotification;
+
+  /// No description provided for @gestureControl.
+  ///
+  /// In en, this message translates to:
+  /// **'Gesture Control'**
+  String get gestureControl;
+
+  /// No description provided for @nextDashboardGestures.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Dashboard Gestures'**
+  String get nextDashboardGestures;
+
+  /// No description provided for @prevDashboardGestures.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous Dashboard Gestures'**
+  String get prevDashboardGestures;
+
+  /// No description provided for @experimentalWidget.
+  ///
+  /// In en, this message translates to:
+  /// **'Experimental widget'**
+  String get experimentalWidget;
 }
 
 class _AppLocalizationsDelegate

@@ -10,7 +10,7 @@ import 'package:smirror_app/database/binary_database.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:smirror_app/services/path_service.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smirror_app/bloc/setup_cubit.dart';
 import 'package:smirror_app/l10n/app_localizations.dart';

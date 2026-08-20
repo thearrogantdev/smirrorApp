@@ -71,6 +71,7 @@
   "widgetNameTextLabel": "Text-Label",
   "widgetNameImage": "Bild",
   "widgetNameRainRadar": "Regenradar",
+  "widgetNameRainForecast": "Regenvorhersage",
   "rainRadarSettingsTitle": "Regenradar-Einstellungen",
   "googleCalendarSettingsTitle": "Google Kalender Einstellungen",
   "googleAuthorizeButton": "Google autorisieren",
@@ -156,6 +157,7 @@
   "widgetNameRandomUselessFact": "Zufälliger unnützer Fakt",
   "randomInsultAllow18Plus": "18+-Beleidigungen erlauben",
   "editWidgetProperties": "Widget-Stil bearbeiten",
+  "noWidgetParameters": "Dieses Widget hat keine konfigurierbaren Parameter.",
   "widgetNameHAMultiDashboard": "Multi-Dashboard",
   "haSelectDashboards": "Dashboards konfigurieren",
   "haAvailableDashboards": "Wähle enthaltene Dashboards",
@@ -475,5 +477,9 @@
   "conflictDialogTitle": "Sitzungskonflikt",
   "conflictDialogMessage": "Eine andere App hat sich mit demselben Benutzer angemeldet. Die Verbindung wurde getrennt.",
   "dashboardUpdatedNotification": "Dashboard automatisch aktualisiert",
-  "viewUpdatedNotification": "Ansichtslayout automatisch aktualisiert"
+  "viewUpdatedNotification": "Ansichtslayout automatisch aktualisiert",
+  "gestureControl": "Gestensteuerung",
+  "nextDashboardGestures": "Gesten für nächstes Dashboard",
+  "prevDashboardGestures": "Gesten für vorheriges Dashboard",
+  "experimentalWidget": "Experimentelles Widget"
 }

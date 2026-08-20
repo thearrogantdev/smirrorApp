@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smirror_app/items/types/entertainment/cataas_gif.dart';
 import 'package:smirror_app/items/types/entertainment/cataas_image.dart';
 import 'package:smirror_app/items/types/entertainment/pokemon_of_the_day.dart';
@@ -17,9 +17,10 @@ import 'package:smirror_app/items/types/homeassistant/single_dashboard.dart';
 import 'package:smirror_app/items/types/openweather/current_weather.dart';
 import 'package:smirror_app/items/types/general/text_label.dart';
 import 'package:smirror_app/items/types/general/system_usage.dart';
+import 'package:smirror_app/items/types/openweather/rain_radar.dart';
 import 'package:smirror_app/items/widget_type_definition.dart';
 import 'types/openweather/forecast_weather.dart';
-import 'types/openweather/rain_radar.dart';
+import 'types/openweather/rain_forecast.dart';
 import 'types/general/digital_clock.dart';
 
 class WidgetTypeRegistry {
@@ -45,6 +46,7 @@ class WidgetTypeRegistry {
     RainRadarWidgetType(),
     DigitalClockWidgetType(),
     GoogleTasksWidget(),
+    OpenWeatherRainForecast(),
   ];
 
   static final Map<int, WidgetTypeDefinition> _types = {

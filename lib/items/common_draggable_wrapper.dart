@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class CanvasItemWrapper<T> extends StatefulWidget {
   final T item;
@@ -135,31 +135,43 @@ class _CanvasItemWrapperState<T> extends State<CanvasItemWrapper<T>> {
       left: _tempPosition.dx,
       top: _tempPosition.dy,
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onPanStart: _onPanStart,
         onPanUpdate: _onPanUpdate,
         onPanEnd: _onPanEnd,
         onLongPress: widget.onLongPress,
-        child: Stack(
-          children: [
-            SizedBox(
-              width: _tempSize.width,
-              height: _tempSize.height,
-              child: widget.child,
+        child: Container(
+          width: _tempSize.width,
+          height: _tempSize.height,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+              width: 1.0,
             ),
-            if (widget.canResize)
-              Positioned(
-                right: 0,
-                bottom: 0,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onPanStart: (_) => _onResizeStart(),
-                  onPanUpdate: (d) =>
-                      _onResize(d, fromRight: true, fromBottom: true),
-                  onPanEnd: (_) => _onResizeEnd(),
-                  child: const _ResizeTriangle(),
-                ),
+            borderRadius: BorderRadius.circular(4.0),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
+          ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: widget.child,
               ),
-          ],
+              if (widget.canResize)
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onPanStart: (_) => _onResizeStart(),
+                    onPanUpdate: (d) =>
+                        _onResize(d, fromRight: true, fromBottom: true),
+                    onPanEnd: (_) => _onResizeEnd(),
+                    child: const _ResizeTriangle(),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

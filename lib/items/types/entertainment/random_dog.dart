@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:http/http.dart' as http;
 import 'package:smirror_app/bloc/viewConfig/view_config_models.dart';
 import 'package:smirror_app/items/widget_type_definition.dart';
@@ -23,15 +23,6 @@ class RandomDogWidgetType extends WidgetTypeDefinition {
   @override
   Widget buildChild(ViewConfigItem item) {
     return const _RandomDogPreview();
-  }
-
-  @override
-  Future<List<ViewConfigProperty>?> promptForProperties(
-    BuildContext context, {
-    List<ViewConfigProperty>? initial,
-    VoidCallback? onDelete,
-  }) {
-    return Future.value(createDefaultProperties());
   }
 }
 

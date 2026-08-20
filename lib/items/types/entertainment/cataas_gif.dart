@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smirror_app/bloc/viewConfig/view_config_models.dart';
 import 'package:smirror_app/items/widget_type_definition.dart';
 import 'package:smirror_app/l10n/app_localizations.dart' show AppLocalizations;
@@ -37,15 +37,5 @@ class CataasGifWidgetType extends WidgetTypeDefinition {
         ),
       ),
     );
-  }
-
-  @override
-  Future<List<ViewConfigProperty>?> promptForProperties(
-    BuildContext context, {
-    List<ViewConfigProperty>? initial,
-    VoidCallback? onDelete,
-  }) {
-    // Return default (empty) list immediately to skip the config dialog
-    return Future.value(createDefaultProperties());
   }
 }

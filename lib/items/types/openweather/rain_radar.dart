@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smirror_app/bloc/viewConfig/view_config_models.dart';
 import 'package:smirror_app/items/types/openweather/open_weather_prompt.dart';
 import 'package:smirror_wire/constants/widget_ids.dart';
@@ -11,6 +11,7 @@ class RainRadarWidgetType extends WidgetTypeDefinition {
         typeId: WidgetIds.rainRadar,
         nameBuilder: (ctx) => AppLocalizations.of(ctx)!.widgetNameRainRadar,
         defaultSize: const Size(300, 300),
+        isExperimental: true,
       );
 
   @override

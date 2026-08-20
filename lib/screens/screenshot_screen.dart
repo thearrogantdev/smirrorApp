@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smirror_app/bloc/backendConnection/back_app_websocket_bloc.dart';
 import 'package:smirror_app/bloc/backendConnection/back_app_websocket_state.dart';

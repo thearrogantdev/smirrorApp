@@ -7,7 +7,7 @@ import 'package:auto_route/auto_route.dart';
 import 'toml_download_helper.dart';
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smirror_app/dialogs/app_dialog.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';

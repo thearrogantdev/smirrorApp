@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:smirror_app/bloc/backendConnection/back_app_websocket_bloc.dart';
@@ -11,6 +11,8 @@ import 'package:smirror_app/dialogs/initial_setup_dialog.dart';
 import 'package:smirror_app/l10n/app_localizations.dart';
 import 'package:smirror_wire/generated/back_app_back_app_generated.dart' as backmsg;
 import 'package:smirror_wire/generated/app_back_app_back_generated.dart' as appmsg;
+import 'package:smirror_app/bloc/viewConfig/view_config_bloc.dart';
+import 'package:smirror_app/bloc/viewConfig/view_config_event.dart';
 import 'backend_result_handler.dart';
 
 class BackendResponseListener extends StatefulWidget {
@@ -189,22 +191,23 @@ class _BackendResponseListenerState extends State<BackendResponseListener> {
         }
 
         if (state is BackAppWebSocketGotNewView) {
+          context.read<ViewConfigBloc>().add(ReloadViewConfigEvent());
+          final loc = AppLocalizations.of(context);
+          if (loc != null) {
+            ScaffoldMessenger.of(context).removeCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  loc.viewUpdatedNotification,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
           if (_viewUpdatedWithoutAsking) {
             _viewUpdatedWithoutAsking = false;
-            final loc = AppLocalizations.of(context);
-            if (loc != null) {
-              ScaffoldMessenger.of(context).removeCurrentSnackBar();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    loc.viewUpdatedNotification,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  backgroundColor: Colors.green,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            }
           }
         }
 

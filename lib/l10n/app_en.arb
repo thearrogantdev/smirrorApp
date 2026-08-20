@@ -71,6 +71,7 @@
   "widgetNameTextLabel": "Text Label",
   "widgetNameImage": "Image",
   "widgetNameRainRadar": "Rain Radar",
+  "widgetNameRainForecast": "Rain Forecast",
   "rainRadarSettingsTitle": "Rain Radar Settings",
   "googleCalendarSettingsTitle": "Google Calendar Settings",
   "googleAuthorizeButton": "Authorize Google",
@@ -163,6 +164,7 @@
   "widgetNameRandomUselessFact": "Random Useless Fact",
   "randomInsultAllow18Plus": "Allow 18+ insults",
   "editWidgetProperties": "Edit Widget Style",
+  "noWidgetParameters": "This widget has no configurable parameters.",
   "widgetNameHAMultiDashboard": "Multi-Dashboard",
   "haSelectDashboards": "Configure Dashboards",
   "haAvailableDashboards": "Select dashboards to include",
@@ -508,5 +510,9 @@
   "conflictDialogTitle": "Session Conflict",
   "conflictDialogMessage": "Another app connected as the same user. You have been disconnected.",
   "dashboardUpdatedNotification": "Dashboard updated automatically",
-  "viewUpdatedNotification": "View layout updated automatically"
+  "viewUpdatedNotification": "View layout updated automatically",
+  "gestureControl": "Gesture Control",
+  "nextDashboardGestures": "Next Dashboard Gestures",
+  "prevDashboardGestures": "Previous Dashboard Gestures",
+  "experimentalWidget": "Experimental widget"
 }

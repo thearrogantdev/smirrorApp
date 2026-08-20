@@ -186,6 +186,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get widgetNameRainRadar => 'Regenradar';
 
   @override
+  String get widgetNameRainForecast => 'Regenvorhersage';
+
+  @override
   String get rainRadarSettingsTitle => 'Regenradar-Einstellungen';
 
   @override
@@ -431,6 +434,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get editWidgetProperties => 'Widget-Stil bearbeiten';
+
+  @override
+  String get noWidgetParameters =>
+      'Dieses Widget hat keine konfigurierbaren Parameter.';
 
   @override
   String get widgetNameHAMultiDashboard => 'Multi-Dashboard';
@@ -1238,4 +1245,16 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get viewUpdatedNotification =>
       'Ansichtslayout automatisch aktualisiert';
+
+  @override
+  String get gestureControl => 'Gestensteuerung';
+
+  @override
+  String get nextDashboardGestures => 'Gesten für nächstes Dashboard';
+
+  @override
+  String get prevDashboardGestures => 'Gesten für vorheriges Dashboard';
+
+  @override
+  String get experimentalWidget => 'Experimentelles Widget';
 }

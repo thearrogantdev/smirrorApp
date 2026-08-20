@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smirror_app/items/common_draggable_wrapper.dart';
 
 class CommonCanvas<T> extends StatelessWidget {

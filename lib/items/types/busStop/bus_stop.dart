@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'package:flat_buffers/flat_buffers.dart' as fb;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:smirror_app/bloc/viewConfig/view_config_models.dart';

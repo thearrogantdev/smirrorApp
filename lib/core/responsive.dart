@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 const double kMobileBreakpoint = 800;
 const double kTabletBreakpoint = 1200;

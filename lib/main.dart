@@ -1,8 +1,9 @@
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:get_it/get_it.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:smirror_app/bloc/backendConnection/back_app_websocket_bloc.dart';
 import 'package:smirror_app/bloc/homeAssistant/home_assistant_bloc.dart';
 import 'package:smirror_app/bloc/session_context_cubit.dart';
@@ -17,6 +18,8 @@ import 'bloc/backendConnection/app_websocket_bloc.dart';
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
+  GoogleFonts.config.allowRuntimeFetching = false;
 
   configureDependencies();
 
@@ -54,7 +57,6 @@ class MyApp extends StatelessWidget {
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
 

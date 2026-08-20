@@ -45,6 +45,8 @@ class SetLanguageEvent extends ViewConfigEvent {
   SetLanguageEvent(this.language);
 }
 
+class ReloadViewConfigEvent extends ViewConfigEvent {}
+
 class UserChangedEvent extends ViewConfigEvent {
   final User? user;
   UserChangedEvent(this.user);

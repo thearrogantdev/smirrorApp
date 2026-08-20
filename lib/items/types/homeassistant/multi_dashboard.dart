@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:smirror_app/dialogs/app_dialog.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:get_it/get_it.dart';
@@ -8,6 +8,7 @@ import 'package:smirror_app/bloc/backendConnection/back_app_websocket_bloc.dart'
 import 'package:smirror_app/bloc/backendConnection/back_app_websocket_state.dart';
 import 'package:smirror_app/bloc/viewConfig/view_config_models.dart';
 import 'package:smirror_wire/generated/app_back_app_back_generated.dart' as appmsg;
+import 'package:smirror_wire/generated/back_front_back_front_generated.dart' as bfmsg;
 import 'package:smirror_wire/generated/dashboard_dashboard_structure_generated.dart' as dash;
 import 'package:smirror_wire/generated/widget_internals_widget_internals_generated.dart' as internals;
 import 'package:smirror_wire/constants/widget_ids.dart';
@@ -75,6 +76,16 @@ class HAMultiDashboard extends WidgetTypeDefinition {
       key: PropertyIdsMultiHADashboard.dashboardNames,
       type: ViewConfigPropertyType.string,
       stringValue: "",
+    ),
+    ViewConfigProperty(
+      key: PropertyIdsMultiHADashboard.nextDashboardGesture,
+      type: ViewConfigPropertyType.int,
+      intValue: bfmsg.SimpleCommandType.UP.value,
+    ),
+    ViewConfigProperty(
+      key: PropertyIdsMultiHADashboard.prevDashboardGesture,
+      type: ViewConfigPropertyType.int,
+      intValue: bfmsg.SimpleCommandType.DOWN.value,
     ),
   ];
 
@@ -155,6 +166,30 @@ class HAMultiDashboard extends WidgetTypeDefinition {
 
     final List<int> initialBackendIds = _unpackIds(existingProp?.rawBytes);
 
+    final nextGestureProp = initial?.firstWhere(
+      (p) => p.key == PropertyIdsMultiHADashboard.nextDashboardGesture,
+      orElse: () => createDefaultProperties().firstWhere((p) => p.key == PropertyIdsMultiHADashboard.nextDashboardGesture),
+    );
+    final prevGestureProp = initial?.firstWhere(
+      (p) => p.key == PropertyIdsMultiHADashboard.prevDashboardGesture,
+      orElse: () => createDefaultProperties().firstWhere((p) => p.key == PropertyIdsMultiHADashboard.prevDashboardGesture),
+    );
+
+    final int initialNextGesture = nextGestureProp?.intValue ?? bfmsg.SimpleCommandType.UP.value;
+    final int initialPrevGesture = prevGestureProp?.intValue ?? bfmsg.SimpleCommandType.DOWN.value;
+
+    final allowedGestures = [
+      bfmsg.SimpleCommandType.UP,
+      bfmsg.SimpleCommandType.DOWN,
+      bfmsg.SimpleCommandType.LEFT,
+      bfmsg.SimpleCommandType.RIGHT,
+      bfmsg.SimpleCommandType.PUSH,
+      bfmsg.SimpleCommandType.PULL,
+      bfmsg.SimpleCommandType.CLOCKWISE_ROTATION,
+      bfmsg.SimpleCommandType.ANTICLOCKWISE_ROTATION,
+      bfmsg.SimpleCommandType.WAVE,
+    ];
+
     return showDialog<List<ViewConfigProperty>>(
       context: context,
       builder: (ctx) {
@@ -187,9 +222,14 @@ class HAMultiDashboard extends WidgetTypeDefinition {
 
                       return FormBuilder(
                         key: formKey,
-                        initialValue: {'ids': initialBackendIds},
+                        initialValue: {
+                          'ids': initialBackendIds,
+                          'nextDashboardGesture': initialNextGesture,
+                          'prevDashboardGesture': initialPrevGesture,
+                        },
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             FormBuilderField<List<int>>(
                               name: 'ids',
@@ -209,7 +249,7 @@ class HAMultiDashboard extends WidgetTypeDefinition {
 
                                     // REORDERABLE LIST
                                     ConstrainedBox(
-                                      constraints: const BoxConstraints(maxHeight: 350),
+                                      constraints: const BoxConstraints(maxHeight: 250),
                                       child: ReorderableListView(
                                         shrinkWrap: true,
                                         onReorderItem: (oldIdx, newIdx) {
@@ -266,6 +306,41 @@ class HAMultiDashboard extends WidgetTypeDefinition {
                                 );
                               },
                             ),
+                            const SizedBox(height: 16),
+                            const Divider(),
+                            const SizedBox(height: 8),
+                            Text(
+                              loc.gestureControl,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            FormBuilderDropdown<int>(
+                              name: 'nextDashboardGesture',
+                              decoration: InputDecoration(
+                                labelText: loc.nextDashboardGestures,
+                              ),
+                              items: allowedGestures
+                                  .map((e) => DropdownMenuItem(
+                                        value: e.value,
+                                        child: Text(e.name),
+                                      ))
+                                  .toList(),
+                            ),
+                            const SizedBox(height: 16),
+                            FormBuilderDropdown<int>(
+                              name: 'prevDashboardGesture',
+                              decoration: InputDecoration(
+                                labelText: loc.prevDashboardGestures,
+                              ),
+                              items: allowedGestures
+                                  .map((e) => DropdownMenuItem(
+                                        value: e.value,
+                                        child: Text(e.name),
+                                      ))
+                                  .toList(),
+                            ),
                           ],
                         ),
                       );
@@ -303,6 +378,9 @@ class HAMultiDashboard extends WidgetTypeDefinition {
                             selectedNames.add(name);
                           }
 
+                          final nextGesture = formKey.currentState!.value['nextDashboardGesture'] as int? ?? bfmsg.SimpleCommandType.UP.value;
+                          final prevGesture = formKey.currentState!.value['prevDashboardGesture'] as int? ?? bfmsg.SimpleCommandType.DOWN.value;
+
                           // --- BINARY PACKING FOR BACKEND ---
                           final builder = fb.Builder(initialSize: 128);
                           final idsOffset = builder.writeListUint64(selectedIds);
@@ -323,6 +401,16 @@ class HAMultiDashboard extends WidgetTypeDefinition {
                               key: PropertyIdsMultiHADashboard.dashboardNames,
                               type: ViewConfigPropertyType.string,
                               stringValue: selectedNames.join("|||"),
+                            ),
+                            ViewConfigProperty(
+                              key: PropertyIdsMultiHADashboard.nextDashboardGesture,
+                              type: ViewConfigPropertyType.int,
+                              intValue: nextGesture,
+                            ),
+                            ViewConfigProperty(
+                              key: PropertyIdsMultiHADashboard.prevDashboardGesture,
+                              type: ViewConfigPropertyType.int,
+                              intValue: prevGesture,
                             ),
                           ]);
                         }
